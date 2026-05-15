@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "Tired Labs",
+    "Type": "TRR",
+    "BaseUrl": "https://library.tired-labs.org/",
+    "RawIndexBaseUrl": "data/example-trr/"
+  },
+  {
+    "Name": "Internal Coverage",
+    "Type": "PCR",
+    "BaseUrl": "",
+    "RawIndexBaseUrl": "data/example-pcr/"
+  }
+]

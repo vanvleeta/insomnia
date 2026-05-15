@@ -1,0 +1,129 @@
+[
+  {
+    "title": " Reading SAM Hive from Raw Volume",
+    "id": "PCR0010",
+    "type": "Coverage Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.D"
+    ],
+    "avl_rule": "AVL_R230077",
+    "rule_version": "1",
+    "avl_use_case": "AVL_UC146843",
+    "schedule": "1h",
+    "lookback": "Standard",
+    "mode": "Alert",
+    "severity": "Medium",
+    "confidence": "Low",
+    "tr_playbook": "tr_ioc_match",
+    "last_update": "2026-04-16",
+    "pub_date": "2026-04-16"
+  },
+  {
+    "title": "Writing SAM or SYSTEM Hive to Disk",
+    "id": "PCR0011",
+    "type": "Coverage Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.A", "TRR0030.WIN.B", "TRR0030.WIN.C", "TRR0030.WIN.D"
+    ]
+  },
+  {
+    "title": "Test UD Detection",
+    "id": "PCR0012",
+    "type": "Detection - SecFirst",
+    "status": "Retired",
+    "contributors": [
+      ""
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Initial Access"
+    ],
+    "techniques": [
+      "T0000"
+    ],
+    "procedures": [
+      "TRR0000.XXX.X"
+    ]
+  },
+  {
+    "title": "Local SAM Credential Enumeration",
+    "id": "PCR0013",
+    "type": "Gap Record",
+    "status": "Active",
+    "contributors": [
+      ""
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T0003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.A"
+    ]
+  },
+  {
+    "title": "Azure Domain Trust Modification",
+    "id": "PCR0014",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Persistence", "Defense Impairment"
+    ],
+    "techniques": [
+      "T1484.002", "T1556.007"
+    ],
+    "procedures": [
+      "TRR0031.AZR.A", "TRR0031.AZR.B"
+    ],
+    "avl_rule": "AVL_R237862",
+    "rule_version": "1",
+    "avl_use_case": "AVL_UC151189",
+    "schedule": "1h",
+    "lookback": "Standard",
+    "mode": "Alert",
+    "severity": "Medium",
+    "confidence": "Low",
+    "tr_playbook": "tr_ioc_match",
+    "last_update": "2026-04-16",
+    "pub_date": "2026-04-16"
+  }
+]
