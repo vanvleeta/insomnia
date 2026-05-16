@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Insomnia — Coverage Dashboard</title>
+  <title>Insomnia — Records</title>
   <link rel="icon" type="image/png" href="img/eye_for_dark_mode.png">
   <link rel="stylesheet" href="css/insomnia.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
   <script type="module" src="js/app.js"></script>
   <script type="module">
-    import { renderDashboard } from './js/dashboard.js';
+    import { renderRecordsView } from './js/records.js';
     document.addEventListener('DOMContentLoaded', () => {
-      renderDashboard(document.getElementById('app'));
+      renderRecordsView(document.getElementById('app'));
     });
   </script>
 </head>
@@ -26,13 +26,13 @@
       <div class="tagline">the things that keep you up at night</div>
     </div>
     <nav class="header-nav" aria-label="Primary">
-      <a class="nav-link active" href="index.html">Dashboard</a>
+      <a class="nav-link"        href="index.html">Dashboard</a>
       <a class="nav-link"        href="techniques.html">Techniques</a>
-      <a class="nav-link"        href="records.html">Records</a>
+      <a class="nav-link active" href="records.html">Records</a>
       <a class="nav-link"        href="matrix.html">Matrix</a>
     </nav>
     <div class="header-right">
-      <div class="header-meta" id="header-meta">
+      <div class="header-meta">
         <span class="dot" title="Live"></span>
         <span id="header-last-sync">sources synced just now</span>
       </div>

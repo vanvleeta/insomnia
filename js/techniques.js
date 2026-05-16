@@ -115,7 +115,11 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
   const list = el('div', { class: 'proc-list' });
   for (const proc of trr.procedures) {
     if (hasPcr) {
-      list.append(el('div', { class: 'proc-row', title: proc.id },
+      list.append(el('a', {
+        class: 'proc-row proc-row-link',
+        href: `records.html?procedure=${encodeURIComponent(proc.id)}`,
+        title: `${proc.id} — view related records`,
+      },
         el('span', { class: `proc-swatch ${proc.state}` }),
         el('span', { class: 'proc-letter' }, proc.letter),
         el('span', { class: 'proc-name' }, proc.name),

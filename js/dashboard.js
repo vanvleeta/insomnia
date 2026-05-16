@@ -5,7 +5,7 @@
 import { loadInsomniaData, STATE } from './data.js';
 import {
   computeMetrics, coverageByTactic, coverageByPlatform,
-  topGaps, topOpportunities, buildTrend, trendDelta
+  topGaps, topOpportunities, buildTrend, trendDelta, latestAdditions
 } from './metrics.js';
 
 // --- Utilities -------------------------------------------------------
@@ -86,25 +86,22 @@ function sparkline(values, color) {
 function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
   const grid = el('div', { class: 'metric-hero-grid' });
 
-  // Score card. In library-only mode, render '--' and skip sparkline/delta.
+  // Score card — visible in both full and library-only modes, since TRRs
+  // and PCRs both contribute to the awareness score.
   const scoreCard = el('div', { class: 'card metric-hero' },
     el('div', { class: 'label' }, 'Attack surface awareness'),
-    el('div', { class: 'value mono' }, hasPcr ? fmtScore(metrics.score) : '--'),
-    el('div', { class: 'sub' },
-      hasPcr ? `${fmtDelta(deltas.score)} in last 90 days`
-             : 'No coverage source configured')
+    el('div', { class: 'value mono' }, fmtScore(metrics.score)),
+    el('div', { class: 'sub' }, `${fmtDelta(deltas.score)} in last 90 days`)
   );
-  if (hasPcr) {
-    const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
-    if (scoreSpark) {
-      const wrap = el('div', { class: 'sparkline' });
-      wrap.append(scoreSpark);
-      scoreCard.append(wrap);
-    }
+  const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
+  if (scoreSpark) {
+    const wrap = el('div', { class: 'sparkline' });
+    wrap.append(scoreSpark);
+    scoreCard.append(wrap);
   }
 
-  // Surface card. In library-only mode, skip the card entirely and let the
-  // score card span both columns.
+  // Surface card only when we have coverage data. Otherwise the score
+  // card spans full width.
   if (!hasPcr) {
     scoreCard.classList.add('full-width');
     grid.append(scoreCard);
@@ -234,26 +231,75 @@ function renderTopList(title, items, tagCls, emptyMsg) {
   return card;
 }
 
-function renderOrphanBanner(orphans) {
-  if (!orphans.length) {
+function renderOrphanBanner(orphans, detached) {
+  const oCount = orphans.length;
+  const dCount = detached.length;
+
+  // Clean state: no orphans and no detached
+  if (oCount === 0 && dCount === 0) {
     return el('div', { class: 'orphan-banner is-clean' },
       el('div', { class: 'orphan-icon', html: '<i class="ti ti-check"></i>' }),
       el('div', { class: 'body' },
-        el('div', { class: 'title' }, 'No orphaned PCRs'),
+        el('div', { class: 'title' }, 'No orphaned or detached PCRs'),
         el('div', { class: 'detail' }, 'Every PCR references a known procedure. The data is clean.'))
     );
   }
-  const detail = orphans.map(o =>
-    `${o.id} → ${o.procedures.join(', ')}`
-  ).join('  ·  ');
-  return el('div', { class: 'orphan-banner' },
-    el('div', { class: 'orphan-icon', html: '<i class="ti ti-alert-triangle"></i>' }),
+
+  // Orphans take priority — those are data errors.
+  if (oCount > 0) {
+    const detail = orphans.map(o => `${o.id} → ${o.procedures.join(', ')}`).join('  ·  ');
+    return el('div', { class: 'orphan-banner' },
+      el('div', { class: 'orphan-icon', html: '<i class="ti ti-alert-triangle"></i>' }),
+      el('div', { class: 'body' },
+        el('div', { class: 'title' },
+          `${oCount} orphaned ${oCount === 1 ? 'PCR' : 'PCRs'}` +
+          (dCount ? ` · ${dCount} detached` : '')),
+        el('div', { class: 'detail' }, detail)),
+      el('a', { class: 'review-btn', href: 'records.html?type=detached' }, 'Review →')
+    );
+  }
+
+  // Only detached PCRs — they're valid but worth surfacing.
+  return el('div', { class: 'orphan-banner is-detached' },
+    el('div', { class: 'orphan-icon', html: '<i class="ti ti-link-off"></i>' }),
     el('div', { class: 'body' },
       el('div', { class: 'title' },
-        `${orphans.length} orphaned ${orphans.length === 1 ? 'PCR' : 'PCRs'}`),
-      el('div', { class: 'detail' }, detail)),
-    el('a', { class: 'review-btn', href: 'techniques.html?view=orphans' }, 'Review →')
+        `${dCount} detached ${dCount === 1 ? 'PCR' : 'PCRs'}`),
+      el('div', { class: 'detail' },
+        'PCRs without procedure references. They count toward awareness but not coverage.')),
+    el('a', { class: 'review-btn', href: 'records.html?type=detached' }, 'Review →')
   );
+}
+
+function renderLatestAdditions(items) {
+  const card = el('div', { class: 'card' });
+  card.append(el('div', { class: 'chart-header' },
+    el('div', { class: 'chart-title' }, 'Latest additions'),
+    el('div', { class: 'legend' },
+      el('span', { class: 'legend-item' },
+        el('span', { class: 'legend-sw', style: 'background: var(--brand);' }),
+        'TRR'),
+      el('span', { class: 'legend-item' },
+        el('span', { class: 'legend-sw', style: 'background: var(--covered);' }),
+        'PCR'))
+  ));
+  const list = el('div', { class: 'latest-list' });
+  if (items.length === 0) {
+    list.append(el('div', { class: 'empty-list-msg' }, 'Nothing added in the last 30 days.'));
+  } else {
+    for (const it of items) {
+      const href = it.kind === 'TRR' ? `techniques.html?q=${encodeURIComponent(it.id)}`
+                                     : `records.html?q=${encodeURIComponent(it.id)}`;
+      list.append(el('a', { class: 'latest-item', href },
+        el('span', { class: `latest-kind kind-${it.kind.toLowerCase()}` }, it.kind),
+        el('span', { class: 'id mono' }, it.id),
+        el('span', { class: 'desc' }, it.title),
+        el('span', { class: 'mono latest-date' }, it.date),
+      ));
+    }
+  }
+  card.append(list);
+  return card;
 }
 
 // --- Entry point -----------------------------------------------------
@@ -280,6 +326,7 @@ export async function renderDashboard(container) {
   const platforms = coverageByPlatform(model);
   const gaps = topGaps(model, 6);
   const opportunities = topOpportunities(model, 6);
+  const latest = latestAdditions(model, 30, 10);
 
   container.innerHTML = '';
 
@@ -295,28 +342,24 @@ export async function renderDashboard(container) {
   container.append(renderHeroMetrics(metrics, trend, deltas, model.hasPcrSource));
   container.append(renderStatStrip(metrics, model.hasPcrSource));
 
-  // In library-only mode, the rest of the dashboard would be empty or
-  // misleading — skip everything that depends on coverage data.
-  if (!model.hasPcrSource) {
-    container.append(el('div', { class: 'library-only-hint' },
-      el('div', { class: 'hint-title' }, 'Library mode'),
-      el('div', { class: 'hint-body' },
-        'No PCR (coverage) source is configured. Insomnia is running as a TRR library front-end. ',
-        'To enable coverage tracking, add a PCR source to ',
-        el('code', null, 'sources.json'), '.')
+  if (model.hasPcrSource) {
+    container.append(el('div', { class: 'charts-grid' },
+      renderBarChart('Coverage by tactic', tactics, true),
+      renderBarChart('Coverage by platform', platforms, false),
     ));
-    return;
+    container.append(el('div', { class: 'charts-grid two-col' },
+      renderTopList('Top gaps', gaps, 'gap',
+        'No documented gaps. Either your coverage is complete or no gap records exist yet.'),
+      renderTopList('Top opportunities', opportunities, 'opportunity',
+        'No untouched procedures. Every procedure has at least one record.'),
+    ));
   }
 
-  container.append(el('div', { class: 'charts-grid' },
-    renderBarChart('Coverage by tactic', tactics, true),
-    renderBarChart('Coverage by platform', platforms, false),
-  ));
-  container.append(el('div', { class: 'charts-grid two-col' },
-    renderTopList('Top gaps', gaps, 'gap',
-      'No documented gaps. Either your coverage is complete or no gap records exist yet.'),
-    renderTopList('Top opportunities', opportunities, 'opportunity',
-      'No untouched procedures. Every procedure has at least one record.'),
-  ));
-  container.append(renderOrphanBanner(model.orphanedPcrs));
+  // Latest Additions card — shown in both full and library-only modes.
+  container.append(renderLatestAdditions(latest));
+
+  // Orphan / detached PCR banner — only when we have PCR data
+  if (model.hasPcrSource) {
+    container.append(renderOrphanBanner(model.orphanedPcrs, model.detachedPcrs));
+  }
 }

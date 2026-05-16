@@ -51,22 +51,8 @@ function initLastSyncedClock() {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initLastSyncedClock();
-  initLibraryOnlyMode();
   injectContributeButton();
 });
-
-// Detect library-only mode (no PCR source configured) and tag the body
-// so CSS can hide the Dashboard nav link.
-async function initLibraryOnlyMode() {
-  try {
-    const r = await fetch('sources.json', { cache: 'no-cache' });
-    const sources = await r.json();
-    const hasPcr = Array.isArray(sources) && sources.some(s => s && s.Type === 'PCR');
-    if (!hasPcr) {
-      document.body.classList.add('library-only');
-    }
-  } catch (_) { /* ignore — let pages render their own errors */ }
-}
 
 // Subtle "Contribute" floating button in the bottom-left, linking to the
 // TRR Library project overview.

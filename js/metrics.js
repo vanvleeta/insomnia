@@ -28,14 +28,25 @@ export function computeMetrics(model) {
     }
   }
 
-  // Score: +2 per TRR + sum(fractions) per procedure
-  score = (2 * trrCount) + surfaceCovered;
+  // Count active (non-retired) PCRs. Each contributes 1 to the awareness
+  // score — even detached ones, since they still represent observed
+  // environmental knowledge.
+  let activePcrCount = 0;
+  for (const pcr of model.pcrs.values()) {
+    if (pcr.status !== 'Retired') activePcrCount++;
+  }
+
+  // Score: 2 per TRR + 1 per active (non-retired) PCR.
+  // The coverage percentage tells the procedure-fraction story; the
+  // awareness score is just about volume of research and observations.
+  score = (2 * trrCount) + activePcrCount;
 
   const surfacePct = procCount > 0 ? (surfaceCovered / procCount) * 100 : 0;
 
   return {
     trrCount,
     procCount,
+    pcrCountActive: activePcrCount,
     coveredCount,
     partialCount,
     gapCount,
@@ -135,6 +146,32 @@ function decorateProc(p, model) {
   };
 }
 
+// --- Latest additions -------------------------------------------------
+
+// Return TRRs and PCRs added within the last `days` days, interleaved by
+// publication date (newest first). PCRs without pub_date are skipped.
+export function latestAdditions(model, days = 30, limit = 20) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+  const items = [];
+  for (const trr of model.trrs.values()) {
+    const d = trr.pubDate;
+    if (d && d >= cutoffStr) {
+      items.push({ kind: 'TRR', id: trr.id, title: trr.name, date: d, trr });
+    }
+  }
+  for (const pcr of model.pcrs.values()) {
+    const d = pcr.pubDate;
+    if (d && d >= cutoffStr) {
+      items.push({ kind: 'PCR', id: pcr.id, title: pcr.title || '(untitled)', date: d, pcr });
+    }
+  }
+  items.sort((a, b) => b.date.localeCompare(a.date));
+  return items.slice(0, limit);
+}
+
 // --- Historical trend from pub_dates ---------------------------------
 
 // Build a time series of (date, score, surfacePct). At each date,
@@ -196,9 +233,17 @@ export function buildTrend(model) {
       if (cov + gap > 0) surfaceSum += cov / (cov + gap);
     }
 
-    const score = (2 * trrCount) + surfaceSum;
+    // Count active PCRs in scope as of `date`. Includes detached PCRs.
+    let pcrCountInScope = 0;
+    for (const pcr of model.pcrs.values()) {
+      if (pcr.status === 'Retired') continue;
+      if (pcr.pubDate && pcr.pubDate > date) continue;
+      pcrCountInScope++;
+    }
+
+    const score = (2 * trrCount) + pcrCountInScope;
     const surfacePct = procCount > 0 ? (surfaceSum / procCount) * 100 : 0;
-    series.push({ date, score, surfacePct, trrCount, procCount });
+    series.push({ date, score, surfacePct, trrCount, procCount, pcrCountInScope });
   }
   return series;
 }
