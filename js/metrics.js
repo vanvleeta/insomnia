@@ -102,15 +102,37 @@ export function topGapsAndOpportunities(model, limit = 6) {
   const partials = all.filter(p => p.state === STATE.PARTIAL).sort((a,b) => a.fraction - b.fraction);
   const opportunities = all.filter(p => p.state === STATE.OPPORTUNITY);
   const out = [...gaps, ...partials, ...opportunities].slice(0, limit);
-  return out.map(p => {
-    const trr = model.trrs.get(p.trrId);
-    return {
-      proc: p,
-      trr,
-      label: trr ? `${trr.name} · ${p.name}` : p.name,
-      status: p.state,
-    };
-  });
+  return out.map(p => decorateProc(p, model));
+}
+
+// Just the gaps (state === 'gap') and partials (sorted lowest fraction first).
+// Partials show up as gaps in this view because they have at least one documented
+// gap record someone still needs to address.
+export function topGaps(model, limit = 6) {
+  const all = Array.from(model.procedures.values());
+  const gaps = all.filter(p => p.state === STATE.GAP);
+  const partials = all.filter(p => p.state === STATE.PARTIAL)
+    .sort((a, b) => a.fraction - b.fraction);
+  return [...gaps, ...partials].slice(0, limit).map(p => decorateProc(p, model));
+}
+
+// Just the opportunities (procedures with no PCR records of any kind yet).
+export function topOpportunities(model, limit = 6) {
+  const all = Array.from(model.procedures.values());
+  const opps = all.filter(p => p.state === STATE.OPPORTUNITY);
+  // Sort by TRR id for stable ordering; could weight by tactic relevance later.
+  opps.sort((a, b) => a.id.localeCompare(b.id));
+  return opps.slice(0, limit).map(p => decorateProc(p, model));
+}
+
+function decorateProc(p, model) {
+  const trr = model.trrs.get(p.trrId);
+  return {
+    proc: p,
+    trr,
+    label: trr ? `${trr.name} · ${p.name}` : p.name,
+    status: p.state,
+  };
 }
 
 // --- Historical trend from pub_dates ---------------------------------

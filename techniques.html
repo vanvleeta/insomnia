@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Insomnia — Threat Matrix</title>
+  <title>Insomnia — Techniques</title>
   <link rel="icon" type="image/png" href="img/eye_for_dark_mode.png">
   <link rel="stylesheet" href="css/insomnia.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
   <script type="module" src="js/app.js"></script>
   <script type="module">
-    import { renderMatrixView } from './js/matrix.js';
+    import { renderTechniquesView } from './js/techniques.js';
     document.addEventListener('DOMContentLoaded', () => {
-      renderMatrixView(document.getElementById('app'));
+      renderTechniquesView(document.getElementById('app'));
     });
   </script>
 </head>
@@ -27,8 +27,8 @@
     </div>
     <nav class="header-nav" aria-label="Primary">
       <a class="nav-link"        href="index.html">Dashboard</a>
-      <a class="nav-link"        href="techniques.html">Techniques</a>
-      <a class="nav-link active" href="matrix.html">Matrix</a>
+      <a class="nav-link active" href="techniques.html">Techniques</a>
+      <a class="nav-link"        href="matrix.html">Matrix</a>
     </nav>
     <div class="header-right">
       <div class="header-meta">

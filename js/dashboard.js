@@ -5,7 +5,7 @@
 import { loadInsomniaData, STATE } from './data.js';
 import {
   computeMetrics, coverageByTactic, coverageByPlatform,
-  topGapsAndOpportunities, buildTrend, trendDelta
+  topGaps, topOpportunities, buildTrend, trendDelta
 } from './metrics.js';
 
 // --- Utilities -------------------------------------------------------
@@ -36,7 +36,7 @@ function el(tag, attrs, ...kids) {
 
 function sparkline(values, color) {
   if (!values.length) return null;
-  const w = 130, h = 46, pad = 3;
+  const w = 200, h = 64, pad = 4;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = (max - min) || 1;
@@ -83,27 +83,36 @@ function sparkline(values, color) {
 
 // --- Render functions ------------------------------------------------
 
-function renderHeroMetrics(metrics, trend, deltas) {
+function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
   const grid = el('div', { class: 'metric-hero-grid' });
 
-  // Score card
+  // Score card. In library-only mode, render '--' and skip sparkline/delta.
   const scoreCard = el('div', { class: 'card metric-hero' },
-    el('div', { class: 'label' }, 'Coverage score'),
-    el('div', { class: 'value mono' }, fmtScore(metrics.score)),
+    el('div', { class: 'label' }, 'Attack surface awareness'),
+    el('div', { class: 'value mono' }, hasPcr ? fmtScore(metrics.score) : '--'),
     el('div', { class: 'sub' },
-      `${fmtDelta(deltas.score)} in last 90 days  ·  ` +
-      `${fmtInt(metrics.trrCount)} TRRs  ·  ${fmtPct(metrics.surfaceCovered)} procedure-equivalents`)
+      hasPcr ? `${fmtDelta(deltas.score)} in last 90 days`
+             : 'No coverage source configured')
   );
-  const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
-  if (scoreSpark) {
-    const wrap = el('div', { class: 'sparkline' });
-    wrap.append(scoreSpark);
-    scoreCard.append(wrap);
+  if (hasPcr) {
+    const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
+    if (scoreSpark) {
+      const wrap = el('div', { class: 'sparkline' });
+      wrap.append(scoreSpark);
+      scoreCard.append(wrap);
+    }
   }
 
-  // Surface card
+  // Surface card. In library-only mode, skip the card entirely and let the
+  // score card span both columns.
+  if (!hasPcr) {
+    scoreCard.classList.add('full-width');
+    grid.append(scoreCard);
+    return grid;
+  }
+
   const surfaceCard = el('div', { class: 'card metric-hero surface' },
-    el('div', { class: 'label' }, 'Attack surface covered'),
+    el('div', { class: 'label' }, 'Known attack surface covered'),
     el('div', { class: 'value mono' },
       fmtPct(metrics.surfacePct), el('span', { class: 'pct' }, '%')),
     el('div', { class: 'sub' },
@@ -121,7 +130,17 @@ function renderHeroMetrics(metrics, trend, deltas) {
   return grid;
 }
 
-function renderStatStrip(metrics) {
+function renderStatStrip(metrics, hasPcr) {
+  if (!hasPcr) {
+    return el('div', { class: 'stat-strip two-col' },
+      el('div', { class: 'stat' },
+        el('div', { class: 'stat-label' }, 'TRRs'),
+        el('div', { class: 'stat-value' }, fmtInt(metrics.trrCount))),
+      el('div', { class: 'stat' },
+        el('div', { class: 'stat-label' }, 'Procedures'),
+        el('div', { class: 'stat-value' }, fmtInt(metrics.procCount))),
+    );
+  }
   return el('div', { class: 'stat-strip' },
     el('div', { class: 'stat' },
       el('div', { class: 'stat-label' }, 'TRRs'),
@@ -192,22 +211,24 @@ function renderBarChart(title, rows, showLegend = true) {
   return card;
 }
 
-function renderTopGaps(items) {
+function renderTopList(title, items, tagCls, emptyMsg) {
   const card = el('div', { class: 'card' });
   card.append(el('div', { class: 'chart-header' },
-    el('div', { class: 'chart-title' }, 'Top gaps & opportunities')
+    el('div', { class: 'chart-title' }, title)
   ));
   const list = el('div', { class: 'gaps-list' });
-  for (const item of items) {
-    const tagCls = item.status === 'gap' ? 'gap' :
-                   item.status === 'partial' ? 'gap' : 'opportunity';
-    const tagText = item.status === 'partial' ? 'partial' : item.status;
-    list.append(el('div', { class: 'gap-item' },
-      el('span', { class: 'desc' },
-        el('span', { class: 'id mono' }, item.proc.id),
-        item.trr ? item.trr.name : item.proc.name),
-      el('span', { class: `status-tag ${tagCls}` }, tagText)
-    ));
+  if (items.length === 0) {
+    list.append(el('div', { class: 'empty-list-msg' }, emptyMsg));
+  } else {
+    for (const item of items) {
+      const tagText = item.status === 'partial' ? 'partial' : item.status;
+      list.append(el('div', { class: 'gap-item' },
+        el('span', { class: 'desc' },
+          el('span', { class: 'id mono' }, item.proc.id),
+          item.trr ? item.trr.name : item.proc.name),
+        el('span', { class: `status-tag ${tagCls}` }, tagText)
+      ));
+    }
   }
   card.append(list);
   return card;
@@ -231,7 +252,7 @@ function renderOrphanBanner(orphans) {
       el('div', { class: 'title' },
         `${orphans.length} orphaned ${orphans.length === 1 ? 'PCR' : 'PCRs'}`),
       el('div', { class: 'detail' }, detail)),
-    el('a', { class: 'review-btn', href: 'procedures.html?view=orphans' }, 'Review →')
+    el('a', { class: 'review-btn', href: 'techniques.html?view=orphans' }, 'Review →')
   );
 }
 
@@ -257,7 +278,8 @@ export async function renderDashboard(container) {
   const deltas = trendDelta(trend, 90);
   const tactics = coverageByTactic(model);
   const platforms = coverageByPlatform(model);
-  const tops = topGapsAndOpportunities(model, 6);
+  const gaps = topGaps(model, 6);
+  const opportunities = topOpportunities(model, 6);
 
   container.innerHTML = '';
 
@@ -270,30 +292,31 @@ export async function renderDashboard(container) {
     }
   }
 
-  container.append(renderHeroMetrics(metrics, trend, deltas));
-  container.append(renderStatStrip(metrics));
+  container.append(renderHeroMetrics(metrics, trend, deltas, model.hasPcrSource));
+  container.append(renderStatStrip(metrics, model.hasPcrSource));
+
+  // In library-only mode, the rest of the dashboard would be empty or
+  // misleading — skip everything that depends on coverage data.
+  if (!model.hasPcrSource) {
+    container.append(el('div', { class: 'library-only-hint' },
+      el('div', { class: 'hint-title' }, 'Library mode'),
+      el('div', { class: 'hint-body' },
+        'No PCR (coverage) source is configured. Insomnia is running as a TRR library front-end. ',
+        'To enable coverage tracking, add a PCR source to ',
+        el('code', null, 'sources.json'), '.')
+    ));
+    return;
+  }
+
   container.append(el('div', { class: 'charts-grid' },
     renderBarChart('Coverage by tactic', tactics, true),
     renderBarChart('Coverage by platform', platforms, false),
   ));
-  container.append(el('div', { class: 'charts-grid' },
-    renderTopGaps(tops),
-    renderBarChart('Coverage by source', [
-      ...new Map(
-        Array.from(model.trrs.values()).map(t => [t.sourceName, null])
-      ).keys()
-    ].map(name => {
-      const procs = Array.from(model.procedures.values())
-        .filter(p => model.trrs.get(p.trrId)?.sourceName === name);
-      let total = procs.length, sum = 0;
-      const counts = { covered:0, partial:0, gap:0, opportunity:0 };
-      for (const p of procs) {
-        sum += p.fraction;
-        counts[p.state]++;
-      }
-      return { name, ...counts, total, fractionSum: sum,
-               pct: total ? (sum / total) * 100 : 0 };
-    }), false),
+  container.append(el('div', { class: 'charts-grid two-col' },
+    renderTopList('Top gaps', gaps, 'gap',
+      'No documented gaps. Either your coverage is complete or no gap records exist yet.'),
+    renderTopList('Top opportunities', opportunities, 'opportunity',
+      'No untouched procedures. Every procedure has at least one record.'),
   ));
   container.append(renderOrphanBanner(model.orphanedPcrs));
 }

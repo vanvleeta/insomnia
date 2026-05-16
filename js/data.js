@@ -252,6 +252,10 @@ export async function loadInsomniaData(configPath = 'sources.json') {
 
   computeCoverageStates(model);
 
+  // Library-only mode: no PCR sources configured at all (or all failed).
+  // Drives the UI to hide coverage indicators.
+  model.hasPcrSource = model.sources.some(s => s.Type === 'PCR' && !s.error);
+
   return model;
 }
 

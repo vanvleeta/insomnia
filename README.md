@@ -112,13 +112,31 @@ Insomnia fetches `index.json` files from the browser, so the host serving them m
 
 ---
 
-## File layout
+## Library-only mode (TRR Library front-end)
+
+Insomnia automatically detects when no PCR source is configured and adapts:
+
+- The Dashboard view is hidden (the landing page becomes Techniques instead).
+- Coverage indicators are removed from Technique cards (no percentages, no swatches, no record counts).
+- The Matrix view stays available — it renders the same kill-chain layout as ATT&CK Navigator, with cells uncolored since there's no coverage signal.
+
+This means you can drop Insomnia into a TRR repository as a stand-alone library front-end by leaving `sources.json` with only TRR entries. To enable full coverage-tracking mode, add at least one `Type: "PCR"` entry pointing at a PCR repository.
+
+## Views
+
+**Dashboard** (`index.html`) — Headline coverage metrics, breakdown by tactic and platform, top gaps & opportunities, orphaned PCR detection. Hidden in library-only mode.
+
+**Techniques** (`techniques.html`) — Card-per-TRR browse with filters (platform, tactic, recency, coverage state) and sort. Each card's title links directly to the source TRR if `BaseUrl` is configured.
+
+**Matrix** (`matrix.html`) — ATT&CK Navigator-style threat matrix: tactics across the top in kill-chain order, TRRs stacked under each tactic column they apply to. Cells colored by coverage state (when PCR data is loaded) and sorted with what-needs-work at the top of each column.
+
+
 
 ```
 .
 ├── index.html               # Dashboard (front door)
-├── procedures.html          # TRR browse view with coverage indicators
-├── matrix.html              # Threat matrix (planned for v2)
+├── techniques.html          # TRR browse view with coverage indicators
+├── matrix.html              # ATT&CK-style threat coverage matrix
 ├── sources.json             # Source repository configuration
 ├── data/                    # Bundled example data (delete when configuring real sources)
 ├── css/insomnia.css         # All styling
@@ -127,7 +145,8 @@ Insomnia fetches `index.json` files from the browser, so the host serving them m
 │   ├── data.js              # Fetch, normalize, join indices
 │   ├── metrics.js           # Score, surface %, trend
 │   ├── dashboard.js         # Dashboard renderer
-│   └── procedures.js        # TRR browse renderer
+│   ├── techniques.js        # Techniques browse renderer
+│   └── matrix.js            # Threat matrix renderer
 └── img/                     # Logo / eye assets
 ```
 
@@ -143,7 +162,7 @@ Insomnia fetches `index.json` files from the browser, so the host serving them m
 
 ## Roadmap
 
-- **v2:** MITRE-style threat coverage matrix view.
-- **v2:** Read platform short-code mapping from each source's `platforms.json` rather than the heuristic function.
-- **v2:** Trend "decay" view — flag procedures whose most recent record is more than N days old.
-- **v2:** PCR detail drilldowns (clicking a procedure row opens a panel with the referencing PCRs and their AVL rule IDs).
+- **Future:** Read platform short-code mapping from each source's `platforms.json` rather than the heuristic function.
+- **Future:** Trend "decay" view — flag procedures whose most recent record is more than N days old.
+- **Future:** PCR detail drilldowns (clicking a procedure row opens a panel with the referencing PCRs and their AVL rule IDs).
+- **Future:** GitHub Action to commit a daily snapshot of computed metrics, enabling longer-horizon trend data than what's derivable from `pub_date` alone.
