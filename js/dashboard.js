@@ -10,7 +10,7 @@ import {
 
 // --- Utilities -------------------------------------------------------
 
-const fmtScore = (n) => n.toFixed(1);
+const fmtScore = (n) => Math.round(n).toString();
 const fmtPct   = (n) => n.toFixed(1);
 const fmtInt   = (n) => Math.round(n).toString();
 const fmtDelta = (n, digits = 1) => (n >= 0 ? '+' : '') + n.toFixed(digits);
@@ -91,7 +91,7 @@ function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
   const scoreCard = el('div', { class: 'card metric-hero' },
     el('div', { class: 'label' }, 'Attack surface awareness'),
     el('div', { class: 'value mono' }, fmtScore(metrics.score)),
-    el('div', { class: 'sub' }, `${fmtDelta(deltas.score)} in last 90 days`)
+    el('div', { class: 'sub' }, `${fmtDelta(deltas.score, 0)} in last 90 days`)
   );
   const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
   if (scoreSpark) {
