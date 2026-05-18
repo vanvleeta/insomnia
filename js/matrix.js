@@ -6,7 +6,7 @@
    coverage state. Click a cell to expand its procedures.
    ============================================================ */
 
-import { loadInsomniaData, STATE } from './data.js';
+import { loadInsomniaData, STATE, trrUrl } from './data.js';
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -107,10 +107,7 @@ function buildMatrix(model, platformFilter) {
 function renderCell(trr, model) {
   const state = trrOverallState(trr, model.hasPcrSource);
   const pct = trrCoveragePct(trr);
-  const src = model.sources.find(s => s.Name === trr.sourceName);
-  const href = src && src.BaseUrl
-    ? `${src.BaseUrl}${src.BaseUrl.endsWith('/') ? '' : '/'}?trr=${trr.id}`
-    : null;
+  const href = trrUrl(trr, model);
 
   const tooltip = model.hasPcrSource
     ? `${trr.id} · ${trr.name}\n${trr.procedures.length} procedures · ${Math.round(pct)}% covered`

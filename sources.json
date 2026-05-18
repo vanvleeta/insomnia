@@ -2,7 +2,7 @@
   {
     "Name": "Tired Labs",
     "Type": "TRR",
-    "BaseUrl": "https://library.tired-labs.org/",
+    "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
     "RawIndexBaseUrl": "data/example-trr/"
   },
   {

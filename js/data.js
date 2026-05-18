@@ -101,6 +101,7 @@ function normalizeTrr(raw, sourceName, nameToShort) {
     name: raw.name,
     tactics:      raw.tactics      || [],
     platforms:    raw.platforms    || [],
+    platformShort,                       // short code for primary platform (uppercase)
     externalIds:  raw.external_ids || [],
     contributors: raw.contributors || [],
     pubDate:      raw.pub_date     || null,
@@ -350,6 +351,45 @@ export async function loadInsomniaData(configPath = 'sources.json') {
   model.hasPcrSource = model.sources.some(s => s.Type === 'PCR' && !s.error);
 
   return model;
+}
+
+// --- URL helpers ------------------------------------------------------
+
+function trimTrailingSlash(s) {
+  return s && s.endsWith('/') ? s.slice(0, -1) : s;
+}
+
+// Build the public README URL for a TRR.
+//   <BaseUrl>/<trr_id_lowercase>/<platform_short_lowercase>/README.md
+// The platform short code (e.g. "ad", "win", "azr") is preferred over the
+// long display name because that's what shows up in repo folder structure
+// (short codes are filesystem-friendly: lowercase, no spaces). It also
+// matches the procedure ID convention (TRR0030.WIN.A → "win" subfolder).
+// Returns null if the source has no BaseUrl configured.
+export function trrUrl(trr, model) {
+  const src = model.sources.find(s => s.Name === trr.sourceName);
+  if (!src || !src.BaseUrl) return null;
+  const base = trimTrailingSlash(src.BaseUrl);
+  const id = trr.id.toLowerCase();
+  // trr.platformShort is set during normalization; it's already the short
+  // code for the first listed platform (uppercase). Lowercase for the URL.
+  // Fall back to lowercased display name only if no short is available.
+  let plat = null;
+  if (trr.platformShort && trr.platformShort !== 'XXX') {
+    plat = trr.platformShort.toLowerCase();
+  } else if (trr.platforms && trr.platforms[0]) {
+    plat = trr.platforms[0].toLowerCase();
+  }
+  return plat ? `${base}/${id}/${plat}/README.md` : `${base}/${id}/README.md`;
+}
+
+// Build the public README URL for a PCR.
+//   <BaseUrl>/<pcr_id_lowercase>/README.md
+export function pcrUrl(pcr, model) {
+  const src = model.sources.find(s => s.Name === pcr.sourceName);
+  if (!src || !src.BaseUrl) return null;
+  const base = trimTrailingSlash(src.BaseUrl);
+  return `${base}/${pcr.id.toLowerCase()}/README.md`;
 }
 
 // Re-export for other modules

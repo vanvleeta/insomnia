@@ -8,7 +8,7 @@
      ?type=gap|coverage|detection|detached
    ============================================================ */
 
-import { loadInsomniaData, PCR_TYPE } from './data.js';
+import { loadInsomniaData, PCR_TYPE, pcrUrl } from './data.js';
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -44,15 +44,15 @@ function typeTagClass(t) {
   return 'opportunity';
 }
 
-function renderPcrCard(pcr, model, pcrUrl) {
+function renderPcrCard(pcr, model, href) {
   const card = el('div', { class: 'pcr-card' });
 
-  const titleNode = pcrUrl
-    ? el('a', { class: 'pcr-card-title-link', href: pcrUrl, target: '_blank', rel: 'noopener' }, pcr.title || '(untitled)')
+  const titleNode = href
+    ? el('a', { class: 'pcr-card-title-link', href, target: '_blank', rel: 'noopener' }, pcr.title || '(untitled)')
     : (pcr.title || '(untitled)');
 
-  const idLink = pcrUrl
-    ? el('a', { href: pcrUrl, target: '_blank', rel: 'noopener' }, pcr.id)
+  const idLink = href
+    ? el('a', { href, target: '_blank', rel: 'noopener' }, pcr.id)
     : pcr.id;
   const ids = el('div', { class: 'pcr-card-ids mono' }, idLink);
   for (const tech of pcr.techniques.slice(0, 3)) {
@@ -222,12 +222,8 @@ export async function renderRecordsView(container) {
     sort:      'newest',
   };
 
-  // Source URL resolver
-  const pcrUrlFor = (pcr) => {
-    const src = model.sources.find(s => s.Name === pcr.sourceName);
-    if (!src || !src.BaseUrl) return null;
-    return `${src.BaseUrl}${src.BaseUrl.endsWith('/') ? '' : '/'}?pcr=${pcr.id}`;
-  };
+  // Source URL resolver — builds <BaseUrl>/<pcr_id_lowercase>/README.md
+  const pcrUrlFor = (pcr) => pcrUrl(pcr, model);
 
   const allPlatforms = uniqueSorted(Array.from(model.pcrs.values()).flatMap(p => p.platforms));
   const allTactics   = uniqueSorted(Array.from(model.pcrs.values()).flatMap(p => p.tactics));

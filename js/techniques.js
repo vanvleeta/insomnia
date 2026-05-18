@@ -3,7 +3,7 @@
    layout and coverage indicators. Supports search, filters, sort.
    ============================================================ */
 
-import { loadInsomniaData, STATE } from './data.js';
+import { loadInsomniaData, STATE, trrUrl } from './data.js';
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -192,13 +192,9 @@ export async function renderTechniquesView(container, options = {}) {
 
   container.innerHTML = '';
 
-  // Build sourceUrl lookup so cards can link out to the live TRR page in
-  // the original library frontend (e.g. https://library.tired-labs.org/?trr=TRR0011)
-  const sourceUrlFor = (trr) => {
-    const src = model.sources.find(s => s.Name === trr.sourceName);
-    if (!src || !src.BaseUrl) return null;
-    return `${src.BaseUrl}${src.BaseUrl.endsWith('/') ? '' : '/'}?trr=${trr.id}`;
-  };
+  // Build sourceUrl lookup using the centralized helper.
+  // Produces: <BaseUrl>/<trr_id_lowercase>/<platform_lowercase>/README.md
+  const sourceUrlFor = (trr) => trrUrl(trr, model);
 
   // Controls
   const allPlatforms = uniqueSorted(Array.from(model.trrs.values()).flatMap(t => t.platforms));

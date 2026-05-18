@@ -64,17 +64,26 @@ Edit `sources.json`. It is an array of source entries, each of which is one of:
 {
   "Name": "Tired Labs",
   "Type": "TRR",
-  "BaseUrl": "https://library.tired-labs.org/",
+  "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
   "RawIndexBaseUrl": "https://raw.githubusercontent.com/tired-labs/techniques/main/"
 }
 ```
 
-| Field             | Required | Notes                                                                                         |
-|-------------------|----------|-----------------------------------------------------------------------------------------------|
-| `Name`            | yes      | Display name. Shown on TRR cards as a source pill.                                            |
-| `Type`            | yes      | `"TRR"` or `"PCR"`.                                                                           |
-| `BaseUrl`         | no       | Human-facing URL of the source. If set, TRR IDs in the browse view link out to it.            |
-| `RawIndexBaseUrl` | yes      | Where to fetch `index.json` from. Can be an absolute URL or a path relative to the site root. |
+| Field             | Required | Notes                                                                                                                                                                                                  |
+|-------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Name`            | yes      | Display name. Shown on cards as a source pill.                                                                                                                                                          |
+| `Type`            | yes      | `"TRR"` or `"PCR"`.                                                                                                                                                                                     |
+| `BaseUrl`         | no       | Base URL where each record's README lives in its source repo. If set, card titles and IDs become deep links. For GitHub repos this is typically `https://github.com/<owner>/<repo>/blob/<branch>`.   |
+| `RawIndexBaseUrl` | yes      | Where to fetch `index.json` (and, for TRR sources, optionally `platforms.json`) from. Can be an absolute URL or a path relative to the site root.                                                       |
+
+### Link construction
+
+When `BaseUrl` is set, Insomnia builds direct links to each record's README using these patterns:
+
+- **TRR** → `<BaseUrl>/<trr_id_lowercase>/<platform_short_lowercase>/README.md`
+  e.g. `TRR0030` on Windows → `<BaseUrl>/trr0030/win/README.md`. The platform segment is the lowercased short code from `platforms.json` (e.g. `win`, `ad`, `azr`), matching the convention used in procedure IDs (`TRR0030.WIN.A`).
+- **PCR** → `<BaseUrl>/<pcr_id_lowercase>/README.md`
+  e.g. `PCR0010` → `<BaseUrl>/pcr0010/README.md`.
 
 You can configure any number of TRR sources and any number of PCR sources. Insomnia merges them all into a single model and joins on procedure ID across sources.
 
@@ -85,19 +94,19 @@ You can configure any number of TRR sources and any number of PCR sources. Insom
   {
     "Name": "Tired Labs",
     "Type": "TRR",
-    "BaseUrl": "https://library.tired-labs.org/",
+    "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
     "RawIndexBaseUrl": "https://raw.githubusercontent.com/tired-labs/techniques/main/"
   },
   {
     "Name": "Internal Research",
     "Type": "TRR",
-    "BaseUrl": "https://internal.example.com/trrs/",
+    "BaseUrl": "https://github.com/example/internal-trrs/blob/main",
     "RawIndexBaseUrl": "https://raw.githubusercontent.com/example/internal-trrs/main/"
   },
   {
     "Name": "Detection Engineering",
     "Type": "PCR",
-    "BaseUrl": "https://internal.example.com/pcrs/",
+    "BaseUrl": "https://github.com/example/pcrs/blob/main",
     "RawIndexBaseUrl": "https://raw.githubusercontent.com/example/pcrs/main/"
   }
 ]
