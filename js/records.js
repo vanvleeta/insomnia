@@ -135,17 +135,9 @@ function renderPcrCard(pcr, model, pcrUrl) {
     card.append(list);
   }
 
-  // AVL detection metadata (if present, e.g. for coverage / detection records)
-  if (pcr.avlRule || pcr.avlUseCase || pcr.severity) {
-    const det = el('div', { class: 'pcr-detection-meta mono' });
-    const parts = [];
-    if (pcr.avlRule)    parts.push(`rule ${pcr.avlRule}`);
-    if (pcr.avlUseCase) parts.push(`use-case ${pcr.avlUseCase}`);
-    if (pcr.severity)   parts.push(`severity ${pcr.severity}`);
-    if (pcr.confidence) parts.push(`confidence ${pcr.confidence}`);
-    det.textContent = parts.join('  ·  ');
-    card.append(det);
-  }
+  // AVL detection metadata is intentionally omitted from card display to
+  // keep all PCR types visually consistent — the Records view focuses on
+  // which procedures each record addresses, not the rule internals.
 
   return card;
 }

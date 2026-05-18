@@ -75,29 +75,33 @@ function orderedTactics(allTactics) {
   return [...known, ...rest];
 }
 
-// Build a 2D structure: tactic -> [TRRs in that tactic, sorted by state then id]
-function buildMatrix(model) {
-  const allTactics = Array.from(new Set(
-    Array.from(model.trrs.values()).flatMap(t => t.tactics)
-  ));
+// Build a 2D structure: tactic -> [TRRs in that tactic, sorted by state then id].
+// If `platformFilter` is set (a platform display name), only TRRs whose
+// platforms include that name are kept, and tactic columns that end up
+// empty are dropped from the result.
+function buildMatrix(model, platformFilter) {
+  const trrsAll = Array.from(model.trrs.values());
+  const trrs = platformFilter && platformFilter !== 'all'
+    ? trrsAll.filter(t => t.platforms.includes(platformFilter))
+    : trrsAll;
+
+  const allTactics = Array.from(new Set(trrs.flatMap(t => t.tactics)));
   const tactics = orderedTactics(allTactics);
 
   // For each tactic, collect TRRs
+  const order = { [STATE.GAP]: 0, [STATE.PARTIAL]: 1, [STATE.OPPORTUNITY]: 2, [STATE.COVERED]: 3, 'unknown': 4 };
   const columns = tactics.map(tactic => {
-    const trrs = Array.from(model.trrs.values()).filter(t => t.tactics.includes(tactic));
-    // Stable sort: gaps first, then partial, opportunity, covered, then by id
-    // This puts what-needs-work at top of each column.
-    const order = { [STATE.GAP]: 0, [STATE.PARTIAL]: 1, [STATE.OPPORTUNITY]: 2, [STATE.COVERED]: 3, 'unknown': 4 };
-    trrs.sort((a, b) => {
+    const colTrrs = trrs.filter(t => t.tactics.includes(tactic));
+    colTrrs.sort((a, b) => {
       const sa = trrOverallState(a, model.hasPcrSource);
       const sb = trrOverallState(b, model.hasPcrSource);
       if (order[sa] !== order[sb]) return order[sa] - order[sb];
       return a.id.localeCompare(b.id);
     });
-    return { tactic, trrs };
-  });
+    return { tactic, trrs: colTrrs };
+  }).filter(col => col.trrs.length > 0);
 
-  return { columns, tactics };
+  return { columns, tactics, totalTrrs: trrs.length };
 }
 
 function renderCell(trr, model) {
@@ -152,34 +156,72 @@ export async function renderMatrixView(container) {
     return;
   }
 
-  const { columns } = buildMatrix(model);
   container.innerHTML = '';
 
-  // Header strip with legend and summary
-  container.append(el('div', { class: 'matrix-header' },
-    el('div', { class: 'matrix-summary' },
-      el('span', null, `${model.trrs.size} TRRs across ${columns.length} tactics`),
-      model.hasPcrSource
-        ? el('span', { style: 'color: var(--text-dim);' }, ' · ordered with what-needs-work first')
-        : null,
-    ),
-    renderLegend(model.hasPcrSource),
-  ));
+  let platformFilter = 'all';
 
-  // The matrix itself: a horizontally-scrollable grid of columns.
-  const matrix = el('div', { class: 'matrix-grid' });
-  for (const col of columns) {
-    const column = el('div', { class: 'matrix-column' });
-    column.append(el('div', { class: 'matrix-col-header' },
-      el('div', { class: 'matrix-col-title' }, col.tactic),
-      el('div', { class: 'matrix-col-count mono' }, `${col.trrs.length}`),
-    ));
-    const cells = el('div', { class: 'matrix-col-cells' });
-    for (const trr of col.trrs) {
-      cells.append(renderCell(trr, model));
+  // Build the platform options from the union of TRR-source platforms.
+  // Fall back to platforms actually seen on TRRs if the map is empty (e.g.
+  // platforms.json missing).
+  const platformNames = model.trrPlatformNames && model.trrPlatformNames.size > 0
+    ? Array.from(model.trrPlatformNames).sort()
+    : Array.from(new Set(
+        Array.from(model.trrs.values()).flatMap(t => t.platforms)
+      )).sort();
+
+  const platformSel = el('select', { class: 'filter-select' },
+    el('option', { value: 'all' }, 'All platforms'),
+    ...platformNames.map(p => el('option', { value: p }, p)));
+  platformSel.addEventListener('change', () => {
+    platformFilter = platformSel.value;
+    rerender();
+  });
+
+  // Header strip: filter on the left, legend + summary on the right.
+  const summaryText = el('span');
+  const orderingNote = model.hasPcrSource
+    ? el('span', { style: 'color: var(--text-dim);' }, ' · ordered with what-needs-work first')
+    : null;
+  const header = el('div', { class: 'matrix-header' },
+    el('div', { class: 'matrix-controls' }, platformSel),
+    el('div', { class: 'matrix-summary' }, summaryText, orderingNote),
+    renderLegend(model.hasPcrSource),
+  );
+  container.append(header);
+
+  const matrixWrap = el('div');
+  container.append(matrixWrap);
+
+  function rerender() {
+    const { columns, totalTrrs } = buildMatrix(model, platformFilter);
+    summaryText.textContent = platformFilter === 'all'
+      ? `${totalTrrs} TRRs across ${columns.length} tactics`
+      : `${totalTrrs} TRRs on ${platformFilter} across ${columns.length} tactics`;
+
+    matrixWrap.innerHTML = '';
+    if (columns.length === 0) {
+      matrixWrap.append(el('div', {
+        class: 'card',
+        style: 'text-align: center; color: var(--text-dim); padding: 40px;'
+      }, `No TRRs match the platform "${platformFilter}".`));
+      return;
     }
-    column.append(cells);
-    matrix.append(column);
+    const matrix = el('div', { class: 'matrix-grid' });
+    for (const col of columns) {
+      const column = el('div', { class: 'matrix-column' });
+      column.append(el('div', { class: 'matrix-col-header' },
+        el('div', { class: 'matrix-col-title' }, col.tactic),
+        el('div', { class: 'matrix-col-count mono' }, `${col.trrs.length}`),
+      ));
+      const cells = el('div', { class: 'matrix-col-cells' });
+      for (const trr of col.trrs) {
+        cells.append(renderCell(trr, model));
+      }
+      column.append(cells);
+      matrix.append(column);
+    }
+    matrixWrap.append(matrix);
   }
-  container.append(matrix);
+
+  rerender();
 }

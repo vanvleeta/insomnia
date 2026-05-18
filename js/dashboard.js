@@ -274,14 +274,7 @@ function renderOrphanBanner(orphans, detached) {
 function renderLatestAdditions(items) {
   const card = el('div', { class: 'card' });
   card.append(el('div', { class: 'chart-header' },
-    el('div', { class: 'chart-title' }, 'Latest additions'),
-    el('div', { class: 'legend' },
-      el('span', { class: 'legend-item' },
-        el('span', { class: 'legend-sw', style: 'background: var(--brand);' }),
-        'TRR'),
-      el('span', { class: 'legend-item' },
-        el('span', { class: 'legend-sw', style: 'background: var(--covered);' }),
-        'PCR'))
+    el('div', { class: 'chart-title' }, 'Latest additions')
   ));
   const list = el('div', { class: 'latest-list' });
   if (items.length === 0) {
