@@ -28,6 +28,7 @@
   --gap:            #e24b4a;       /* alert red */
   --opportunity:    #4a525c;       /* dim slate */
   --opportunity-bg: #2a3340;
+  --retired:        #9a7cc4;       /* muted violet — archived/past */
 
   --hairline:       rgba(255, 255, 255, 0.04);
   --grid:           rgba(255, 255, 255, 0.018);
@@ -56,6 +57,7 @@
   --gap:            #a32d2d;
   --opportunity:    #888780;
   --opportunity-bg: #e4e0d2;
+  --retired:        #6b4a93;       /* deeper violet for light-bg contrast */
 
   --hairline:       rgba(0, 0, 0, 0.05);
   --grid:           rgba(0, 0, 0, 0.025);
@@ -1083,7 +1085,7 @@ button { font-family: inherit; cursor: pointer; }
 .status-tag.covered     { color: var(--covered);  border-color: var(--covered); }
 .status-tag.gap         { color: var(--gap);      border-color: var(--gap); }
 .status-tag.opportunity { color: var(--text-dim); border-color: var(--border-strong); }
-.status-tag.retired     { color: var(--text-dim); border-color: var(--border-strong); }
+.status-tag.retired     { color: var(--retired); border-color: var(--retired); }
 
 .tag.detached {
   color: var(--brand);

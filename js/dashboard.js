@@ -255,7 +255,7 @@ function renderOrphanBanner(orphans, detached) {
           `${oCount} orphaned ${oCount === 1 ? 'PCR' : 'PCRs'}` +
           (dCount ? ` · ${dCount} detached` : '')),
         el('div', { class: 'detail' }, detail)),
-      el('a', { class: 'review-btn', href: 'records.html?type=detached' }, 'Review →')
+      el('a', { class: 'review-btn', href: 'records.html?type=orphaned' }, 'Review →')
     );
   }
 

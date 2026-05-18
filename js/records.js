@@ -142,12 +142,18 @@ function renderPcrCard(pcr, model, href) {
   return card;
 }
 
-function matchesFilters(pcr, filters) {
+function matchesFilters(pcr, filters, model) {
   if (filters.platform !== 'all' && !pcr.platforms.includes(filters.platform)) return false;
   if (filters.tactic   !== 'all' && !pcr.tactics.includes(filters.tactic))     return false;
   if (filters.type     !== 'all') {
     if (filters.type === 'detached') {
+      // Detached = PCR explicitly lists no procedures.
       if (pcr.procedures && pcr.procedures.length > 0) return false;
+    } else if (filters.type === 'orphaned') {
+      // Orphaned = PCR references procedure IDs, but none of them resolve.
+      if (!pcr.procedures || pcr.procedures.length === 0) return false;
+      const anyKnown = pcr.procedures.some(id => model.procedures.has(id));
+      if (anyKnown) return false;
     } else if (pcr.type !== filters.type) {
       return false;
     }
@@ -211,12 +217,17 @@ export async function renderRecordsView(container) {
 
   // Honor URL filters
   const url = new URLSearchParams(window.location.search);
+  const urlType = url.get('type') || 'all';
+  // When arriving via the dashboard's orphan/detached banner, default to
+  // showing all statuses so the count matches what the banner advertised.
+  // (Otherwise the default 'Active' filter would silently hide retired PCRs.)
+  const defaultStatus = (urlType === 'orphaned' || urlType === 'detached') ? 'all' : 'Active';
   const filters = {
     search:    '',
     platform:  'all',
     tactic:    'all',
-    type:      url.get('type') || 'all',
-    status:    'Active',
+    type:      urlType,
+    status:    defaultStatus,
     created:   'all',
     procedure: url.get('procedure') || 'all',
     sort:      'newest',
@@ -251,6 +262,7 @@ export async function renderRecordsView(container) {
     el('option', { value: PCR_TYPE.DETECTION }, 'Detection records'),
     el('option', { value: PCR_TYPE.GAP }, 'Gap records'),
     el('option', { value: 'detached' }, 'Detached records'),
+    el('option', { value: 'orphaned' }, 'Orphaned records'),
   );
   typeSel.value = filters.type;
   typeSel.addEventListener('change', () => { filters.type = typeSel.value; rerender(); });
@@ -320,7 +332,7 @@ export async function renderRecordsView(container) {
 
   function rerender() {
     const matching = Array.from(model.pcrs.values())
-      .filter(p => matchesFilters(p, filters))
+      .filter(p => matchesFilters(p, filters, model))
       .sort((a, b) => {
         switch (filters.sort) {
           case 'id-asc':  return a.id.localeCompare(b.id);
