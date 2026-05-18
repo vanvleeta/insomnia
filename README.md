@@ -58,32 +58,59 @@ The **coverage fraction** for a procedure is `covered_records / (covered_records
 
 ## Configuration
 
-Edit `sources.json`. It is an array of source entries, each of which is one of:
+Edit `sources.json`. It is an array of source entries. Each entry needs a `Name`, a `Type`, and either a `Repo` (for GitHub-hosted data) or a `LocalPath` (for data bundled inside the Insomnia repo itself).
+
+### GitHub-hosted source
 
 ```json
 {
   "Name": "Tired Labs",
   "Type": "TRR",
-  "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
-  "RawIndexBaseUrl": "https://raw.githubusercontent.com/tired-labs/techniques/main/"
+  "Repo": "https://github.com/tired-labs/techniques"
 }
 ```
 
-| Field             | Required | Notes                                                                                                                                                                                                  |
-|-------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Name`            | yes      | Display name. Shown on cards as a source pill.                                                                                                                                                          |
-| `Type`            | yes      | `"TRR"` or `"PCR"`.                                                                                                                                                                                     |
-| `BaseUrl`         | no       | Base URL where each record's README lives in its source repo. If set, card titles and IDs become deep links. For GitHub repos this is typically `https://github.com/<owner>/<repo>/blob/<branch>`.   |
-| `RawIndexBaseUrl` | yes      | Where to fetch `index.json` (and, for TRR sources, optionally `platforms.json`) from. Can be an absolute URL or a path relative to the site root.                                                       |
+Insomnia derives everything it needs from the repo URL:
+
+- Where to fetch `index.json` and `platforms.json` → `raw.githubusercontent.com/<owner>/<repo>/<branch>/`
+- Where each record's README lives for deep links → `github.com/<owner>/<repo>/blob/<branch>/...`
+
+The branch defaults to `main`. To use a different branch, either set `"Branch": "develop"` or paste a `tree/<branch>` URL like `https://github.com/owner/repo/tree/develop`.
+
+### Locally-bundled source
+
+```json
+{
+  "Name": "Example",
+  "Type": "TRR",
+  "LocalPath": "data/example-trr/"
+}
+```
+
+`LocalPath` is a folder under the deployed Insomnia site that contains `index.json` (and, for TRR sources, optionally `platforms.json`). Local sources don't produce deep links to record READMEs — card titles render as plain text instead of links.
+
+### Field reference
+
+| Field       | Required           | Notes                                                                                              |
+|-------------|--------------------|----------------------------------------------------------------------------------------------------|
+| `Name`      | yes                | Display name. Shown on cards as a source pill.                                                     |
+| `Type`      | yes                | `"TRR"` or `"PCR"`.                                                                                |
+| `Repo`      | one of Repo/LocalPath | GitHub repo URL. e.g. `https://github.com/owner/repo` or `https://github.com/owner/repo/tree/dev`. |
+| `Branch`    | no                 | Override the branch. Defaults to `main` (or whatever is parsed out of `Repo`).                     |
+| `LocalPath` | one of Repo/LocalPath | Folder under the site root containing `index.json`.                                                |
+
+A source must set **exactly one** of `Repo` or `LocalPath`. Misconfigured sources are dropped on load with a banner in the dashboard explaining the error.
 
 ### Link construction
 
-When `BaseUrl` is set, Insomnia builds direct links to each record's README using these patterns:
+For sources backed by a `Repo`, Insomnia builds direct README links using these patterns:
 
-- **TRR** → `<BaseUrl>/<trr_id_lowercase>/<platform_short_lowercase>/README.md`
-  e.g. `TRR0030` on Windows → `<BaseUrl>/trr0030/win/README.md`. The platform segment is the lowercased short code from `platforms.json` (e.g. `win`, `ad`, `azr`), matching the convention used in procedure IDs (`TRR0030.WIN.A`).
-- **PCR** → `<BaseUrl>/<pcr_id_lowercase>/README.md`
-  e.g. `PCR0010` → `<BaseUrl>/pcr0010/README.md`.
+- **TRR** → `<repo>/blob/<branch>/<trr_id_lowercase>/<platform_short_lowercase>/README.md`
+  e.g. `TRR0030` on Windows → `…/blob/main/trr0030/win/README.md`. The platform segment is the lowercased short code from `platforms.json` (e.g. `win`, `ad`, `azr`), matching the convention used in procedure IDs (`TRR0030.WIN.A`).
+- **PCR** → `<repo>/blob/<branch>/<pcr_id_lowercase>/README.md`
+  e.g. `PCR0010` → `…/blob/main/pcr0010/README.md`.
+
+`LocalPath` sources don't generate deep links.
 
 You can configure any number of TRR sources and any number of PCR sources. Insomnia merges them all into a single model and joins on procedure ID across sources.
 
@@ -94,30 +121,25 @@ You can configure any number of TRR sources and any number of PCR sources. Insom
   {
     "Name": "Tired Labs",
     "Type": "TRR",
-    "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
-    "RawIndexBaseUrl": "https://raw.githubusercontent.com/tired-labs/techniques/main/"
+    "Repo": "https://github.com/tired-labs/techniques"
   },
   {
     "Name": "Internal Research",
     "Type": "TRR",
-    "BaseUrl": "https://github.com/example/internal-trrs/blob/main",
-    "RawIndexBaseUrl": "https://raw.githubusercontent.com/example/internal-trrs/main/"
+    "Repo": "https://github.com/example/internal-trrs",
+    "Branch": "develop"
   },
   {
     "Name": "Detection Engineering",
     "Type": "PCR",
-    "BaseUrl": "https://github.com/example/pcrs/blob/main",
-    "RawIndexBaseUrl": "https://raw.githubusercontent.com/example/pcrs/main/"
+    "Repo": "https://github.com/example/pcrs"
   }
 ]
 ```
 
 ### CORS
 
-Insomnia fetches `index.json` files from the browser, so the host serving them must permit CORS (`Access-Control-Allow-Origin`). `raw.githubusercontent.com` does this by default. For internal repositories on GitHub Enterprise or a private host, you may need to either:
-
-- Proxy the index through a CORS-friendly endpoint, or
-- Mirror the index into the Insomnia repo via a scheduled GitHub Action and point `RawIndexBaseUrl` at the local mirror.
+Insomnia fetches `index.json` files from the browser, so the host serving them must permit CORS (`Access-Control-Allow-Origin`). `raw.githubusercontent.com` does this by default. For internal repositories on GitHub Enterprise, you may need to mirror the index into the Insomnia repo (via a scheduled GitHub Action, for example) and reference it with `LocalPath` instead.
 
 ---
 

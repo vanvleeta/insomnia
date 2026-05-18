@@ -1,14 +1,12 @@
 [
   {
-    "Name": "Tired Labs",
+    "Name": "TIRED Labs",
     "Type": "TRR",
-    "BaseUrl": "https://github.com/tired-labs/techniques/blob/main",
-    "RawIndexBaseUrl": "data/example-trr/"
+    "LocalPath": "data/example-trr/"
   },
   {
-    "Name": "Internal Coverage",
+    "Name": "Internal",
     "Type": "PCR",
-    "BaseUrl": "",
-    "RawIndexBaseUrl": "data/example-pcr/"
+    "LocalPath": "data/example-pcr/"
   }
 ]

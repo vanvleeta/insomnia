@@ -5,15 +5,28 @@
 
    Public API:
      loadInsomniaData()  -> Promise<Model>
+     trrUrl(trr, model) -> string | null
+     pcrUrl(pcr, model) -> string | null
+
+   Source config shape (sources.json entries):
+     { Name, Type: "TRR"|"PCR",
+       Repo: "https://github.com/owner/repo",   // one of these...
+       LocalPath: "data/example-trr/",          // ...or this
+       Branch: "main" }                         // optional, defaults to main
+
+   After resolveSourceLocation runs, each source also carries:
+     _rawBase   -> base URL/path for fetching index.json + platforms.json
+     _linkBase  -> base URL for building README links (null for LocalPath)
 
    Model shape:
      {
-       sources: [{ Name, Type, BaseUrl, RawIndexBaseUrl, error? }],
+       sources: [resolved-source...],
        trrs:        Map<TRRID, TRR>           // TRR0011 -> {...}
        procedures:  Map<ProcID, Procedure>    // TRR0011.AD.A -> {...}
        pcrs:        Map<PCRID, PCR>
        pcrsByProc:  Map<ProcID, PCR[]>        // join key
        orphanedPcrs: PCR[]                    // PCRs referencing missing procedures
+       detachedPcrs: PCR[]                    // PCRs with empty procedure list
        loadErrors:  string[]
      }
 
@@ -59,11 +72,6 @@ async function fetchJson(url) {
   const r = await fetch(url, { cache: 'no-cache' });
   if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${url}`);
   return r.json();
-}
-
-function joinUrl(base, name) {
-  if (!base) return name;
-  return base.endsWith('/') ? base + name : base + '/' + name;
 }
 
 // --- Normalization ----------------------------------------------------
@@ -238,6 +246,76 @@ function computeCoverageStates(model) {
   }
 }
 
+// --- Source resolution ------------------------------------------------
+
+// Parse a GitHub repo URL and optional branch into the two URLs we need:
+//   _rawBase:  base for fetching index.json, platforms.json (raw content)
+//   _linkBase: base for building human-facing README links
+//
+// Accepts inputs like:
+//   https://github.com/owner/repo
+//   https://github.com/owner/repo.git
+//   https://github.com/owner/repo/tree/branch
+//   https://github.com/owner/repo/tree/branch/anything-after-is-ignored
+//
+// If a `Branch` field is set on the source, it takes precedence over any
+// branch parsed from the URL.
+function parseGitHubRepo(repoUrl, explicitBranch) {
+  if (typeof repoUrl !== 'string' || !repoUrl.trim()) {
+    throw new Error('Repo must be a non-empty string');
+  }
+  // Tolerate protocol-less inputs and trailing slashes.
+  let url = repoUrl.trim().replace(/\/+$/, '');
+  url = url.replace(/^https?:\/\//, '');
+  // Strip github.com host
+  if (!url.toLowerCase().startsWith('github.com/')) {
+    throw new Error(`Only GitHub repos are supported (got "${repoUrl}")`);
+  }
+  url = url.slice('github.com/'.length);
+  const parts = url.split('/');
+  if (parts.length < 2) {
+    throw new Error(`Repo URL "${repoUrl}" is missing owner/repo`);
+  }
+  const owner = parts[0];
+  let repo = parts[1].replace(/\.git$/, '');
+  let branch = explicitBranch || 'main';
+  // Look for /tree/<branch> in the rest of the path
+  if (!explicitBranch && parts[2] === 'tree' && parts[3]) {
+    branch = parts[3];
+  }
+  return {
+    rawBase: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`,
+    linkBase: `https://github.com/${owner}/${repo}/blob/${branch}`,
+  };
+}
+
+// Compute _rawBase and _linkBase for a source entry based on its declared
+// location. Each source must specify exactly one of `Repo` or `LocalPath`.
+//
+//   Repo:      "https://github.com/owner/repo" + optional "Branch"
+//   LocalPath: filesystem-relative path under the deployed site root
+//
+// Returns nothing — mutates the source in place. Throws on invalid config.
+function resolveSourceLocation(src) {
+  const hasRepo = typeof src.Repo === 'string' && src.Repo.trim() !== '';
+  const hasLocal = typeof src.LocalPath === 'string' && src.LocalPath.trim() !== '';
+  if (hasRepo && hasLocal) {
+    throw new Error(`Source "${src.Name}" sets both Repo and LocalPath; choose one`);
+  }
+  if (!hasRepo && !hasLocal) {
+    throw new Error(`Source "${src.Name}" must set either Repo or LocalPath`);
+  }
+  if (hasRepo) {
+    const { rawBase, linkBase } = parseGitHubRepo(src.Repo, src.Branch);
+    src._rawBase = rawBase;
+    src._linkBase = linkBase;
+  } else {
+    // Local bundled data: fetch from LocalPath, no external link base.
+    src._rawBase = src.LocalPath.endsWith('/') ? src.LocalPath : src.LocalPath + '/';
+    src._linkBase = null;
+  }
+}
+
 // --- Top-level loader -------------------------------------------------
 
 export async function loadInsomniaData(configPath = 'sources.json') {
@@ -252,13 +330,24 @@ export async function loadInsomniaData(configPath = 'sources.json') {
     orphanedPcrs: [],
     detachedPcrs: [],
     loadErrors: [],
-    // Platform metadata, merged across TRR sources.
     platformNameToShort: new Map(),
     platformShortToName: new Map(),
-    // Sets of platform display names seen (union across sources)
     trrPlatformNames: new Set(),
     pcrPlatformNames: new Set(),
   };
+
+  // Resolve each source's location into _rawBase / _linkBase. Sources that
+  // fail validation are dropped and their error captured for the UI.
+  model.sources = model.sources.filter(src => {
+    try {
+      resolveSourceLocation(src);
+      return true;
+    } catch (e) {
+      model.loadErrors.push(`Source "${src.Name || '(unnamed)'}" misconfigured: ${e.message}`);
+      console.error(model.loadErrors[model.loadErrors.length - 1]);
+      return false;
+    }
+  });
 
   // First pass: for each TRR source, fetch platforms.json (best-effort) so
   // we have a per-source name->short lookup ready when we normalize TRRs.
@@ -266,11 +355,10 @@ export async function loadInsomniaData(configPath = 'sources.json') {
   await Promise.all(model.sources.map(async (src) => {
     if (src.Type !== 'TRR') return;
     try {
-      const platUrl = joinUrl(src.RawIndexBaseUrl, 'platforms.json');
+      const platUrl = src._rawBase + 'platforms.json';
       const doc = await fetchJson(platUrl);
       const parsed = parsePlatformsDoc(doc);
       trrSourcePlatforms.set(src.Name, parsed);
-      // Merge into model-wide platform tables.
       for (const [name, short] of parsed.nameToShort.entries()) {
         model.platformNameToShort.set(name, short);
         model.platformShortToName.set(short, name);
@@ -284,7 +372,7 @@ export async function loadInsomniaData(configPath = 'sources.json') {
   // Second pass: fetch all source index.json files in parallel.
   const fetches = model.sources.map(async (src) => {
     try {
-      const indexUrl = joinUrl(src.RawIndexBaseUrl, 'index.json');
+      const indexUrl = src._rawBase + 'index.json';
       const data = await fetchJson(indexUrl);
       if (!Array.isArray(data)) {
         throw new Error(`index.json from "${src.Name}" is not an array`);
@@ -355,41 +443,29 @@ export async function loadInsomniaData(configPath = 'sources.json') {
 
 // --- URL helpers ------------------------------------------------------
 
-function trimTrailingSlash(s) {
-  return s && s.endsWith('/') ? s.slice(0, -1) : s;
-}
-
 // Build the public README URL for a TRR.
-//   <BaseUrl>/<trr_id_lowercase>/<platform_short_lowercase>/README.md
-// The platform short code (e.g. "ad", "win", "azr") is preferred over the
-// long display name because that's what shows up in repo folder structure
-// (short codes are filesystem-friendly: lowercase, no spaces). It also
-// matches the procedure ID convention (TRR0030.WIN.A → "win" subfolder).
-// Returns null if the source has no BaseUrl configured.
+//   <linkBase>/<trr_id_lowercase>/<platform_short_lowercase>/README.md
+// e.g. <linkBase>/trr0030/win/README.md
+// Returns null if the TRR's source has no link base (LocalPath source).
 export function trrUrl(trr, model) {
   const src = model.sources.find(s => s.Name === trr.sourceName);
-  if (!src || !src.BaseUrl) return null;
-  const base = trimTrailingSlash(src.BaseUrl);
+  if (!src || !src._linkBase) return null;
   const id = trr.id.toLowerCase();
-  // trr.platformShort is set during normalization; it's already the short
-  // code for the first listed platform (uppercase). Lowercase for the URL.
-  // Fall back to lowercased display name only if no short is available.
   let plat = null;
   if (trr.platformShort && trr.platformShort !== 'XXX') {
     plat = trr.platformShort.toLowerCase();
   } else if (trr.platforms && trr.platforms[0]) {
     plat = trr.platforms[0].toLowerCase();
   }
-  return plat ? `${base}/${id}/${plat}/README.md` : `${base}/${id}/README.md`;
+  return plat ? `${src._linkBase}/${id}/${plat}/README.md` : `${src._linkBase}/${id}/README.md`;
 }
 
 // Build the public README URL for a PCR.
-//   <BaseUrl>/<pcr_id_lowercase>/README.md
+//   <linkBase>/<pcr_id_lowercase>/README.md
 export function pcrUrl(pcr, model) {
   const src = model.sources.find(s => s.Name === pcr.sourceName);
-  if (!src || !src.BaseUrl) return null;
-  const base = trimTrailingSlash(src.BaseUrl);
-  return `${base}/${pcr.id.toLowerCase()}/README.md`;
+  if (!src || !src._linkBase) return null;
+  return `${src._linkBase}/${pcr.id.toLowerCase()}/README.md`;
 }
 
 // Re-export for other modules
