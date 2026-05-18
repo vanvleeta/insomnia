@@ -188,3 +188,12 @@ This means you can drop Insomnia into a TRR repository as a stand-alone library 
 - **No build step.** Pure ES modules served as-is. Open `index.html` over a local web server (not `file://`, because ES modules require an HTTP origin). `python3 -m http.server` from the repo root works fine.
 - **No external runtime dependencies** beyond the Tabler icons webfont, which is loaded from a CDN. Everything else is hand-rolled to keep the SOC-after-midnight aesthetic intentional.
 - **Procedure ID platform codes** are derived heuristically from a TRR's first listed platform (see `platformShortCode` in `js/data.js`). For sources that use non-standard platforms, extend that function. A future version will read this mapping from each TRR source's `platforms.json`.
+
+---
+
+## Roadmap
+
+- **Future:** Read platform short-code mapping from each source's `platforms.json` rather than the heuristic function.
+- **Future:** Trend "decay" view — flag procedures whose most recent record is more than N days old.
+- **Future:** PCR detail drilldowns (clicking a procedure row opens a panel with the referencing PCRs and their AVL rule IDs).
+- **Future:** GitHub Action to commit a daily snapshot of computed metrics, enabling longer-horizon trend data than what's derivable from `pub_date` alone.

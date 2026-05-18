@@ -272,7 +272,7 @@ function renderOrphanBanner(orphans, detached) {
 }
 
 function renderLatestAdditions(items) {
-  const card = el('div', { class: 'card' });
+  const card = el('div', { class: 'card latest-additions' });
   card.append(el('div', { class: 'chart-header' },
     el('div', { class: 'chart-title' }, 'Latest additions')
   ));

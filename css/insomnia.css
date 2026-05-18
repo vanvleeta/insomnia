@@ -505,7 +505,10 @@ button { font-family: inherit; cursor: pointer; }
   border-left: 3px solid var(--gap);
   border-radius: 8px;
   position: relative;
+  margin-bottom: 14px;
 }
+
+.latest-additions { margin-bottom: 14px; }
 
 .orphan-banner.is-clean { border-left-color: var(--covered); }
 
@@ -717,10 +720,7 @@ button { font-family: inherit; cursor: pointer; }
   flex-shrink: 0;
 }
 .proc-swatch.covered { background: var(--covered); }
-.proc-swatch.partial {
-  background: var(--partial);
-  background: conic-gradient(var(--partial) 0deg 180deg, var(--gap) 180deg 360deg);
-}
+.proc-swatch.partial { background: var(--partial); }
 .proc-swatch.gap { background: var(--gap); }
 .proc-swatch.opportunity { background: var(--opportunity-bg); border: 1px solid var(--opportunity); }
 
