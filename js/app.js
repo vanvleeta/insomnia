@@ -52,7 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initLastSyncedClock();
   injectContributeButton();
+  initLibraryOnlyMode();
 });
+
+// Tag <body> with `library-only` when no PCR source is configured, so CSS
+// can hide nav items that don't make sense (Records). Runs on every page;
+// the dashboard's own logic also reads the config but is allowed to render
+// either way.
+async function initLibraryOnlyMode() {
+  try {
+    const r = await fetch('sources.json', { cache: 'no-cache' });
+    const sources = await r.json();
+    const hasPcr = Array.isArray(sources) && sources.some(s => s && s.Type === 'PCR');
+    if (!hasPcr) document.body.classList.add('library-only');
+  } catch (_) { /* ignore — pages render their own load errors */ }
+}
 
 // Subtle "Contribute" floating button in the bottom-left, linking to the
 // TRR Library project overview.
