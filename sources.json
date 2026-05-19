@@ -2,11 +2,6 @@
   {
     "Name": "TIRED Labs",
     "Type": "TRR",
-    "LocalPath": "data/example-trr/"
+    "LocalPath": "https://github.com/tired-labs/techniques"
   },
-  {
-    "Name": "Internal",
-    "Type": "PCR",
-    "LocalPath": "data/example-pcr/"
-  }
 ]
