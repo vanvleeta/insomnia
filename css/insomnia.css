@@ -369,6 +369,9 @@ button { font-family: inherit; cursor: pointer; }
   border: 1px solid var(--border);
 }
 
+/* Hide Records nav link in library-only mode (no PCR source configured) */
+body.library-only .nav-link[href="records.html"] { display: none; }
+
 .stat {
   background: var(--bg-surface);
   border: 1px solid var(--border);
