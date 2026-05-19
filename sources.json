@@ -2,6 +2,6 @@
   {
     "Name": "TIRED Labs",
     "Type": "TRR",
-    "LocalPath": "https://github.com/tired-labs/techniques"
-  },
+    "Repo": "https://github.com/tired-labs/techniques"
+  }
 ]
