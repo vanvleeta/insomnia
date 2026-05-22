@@ -1,7 +1,124 @@
 [
   {
-    "title": " Reading SAM Hive from Raw Volume",
+    "title": "Suspicious WMI Event Subscription",
     "id": "PCR0010",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Persistence"
+    ],
+    "techniques": [
+      "T1546.003"
+    ],
+    "procedures": [
+      "TRR0027.WIN.A"
+    ],
+    "pub_date": "2026-05-19"
+  },
+  {
+    "title": "Windows Automatic Registry Backups",
+    "id": "PCR0011",
+    "type": "Gap Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.E"
+    ],
+    "last_update": "2026-05-20",
+    "pub_date": "2026-05-20"
+  },
+  {
+    "title": "Local SAM Credential Enumeration",
+    "id": "PCR0012",
+    "type": "Gap Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.A"
+    ],
+    "last_update": "2026-05-20",
+    "pub_date": "2026-05-20"
+  },
+  {
+    "title": "Remote SAM User Key Enumeration",
+    "id": "PCR0013",
+    "type": "Coverage Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.B"
+    ],
+    "last_update": "2026-05-20",
+    "pub_date": "2026-05-20"
+  },
+  {
+    "title": "Writing SAM or SYSTEM Hive to Disk",
+    "id": "PCR0014",
+    "type": "Coverage Record",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.002"
+    ],
+    "procedures": [
+      "TRR0030.WIN.A",
+      "TRR0030.WIN.B",
+      "TRR0030.WIN.C",
+      "TRR0030.WIN.D"
+    ],
+    "last_update": "2026-05-20",
+    "pub_date": "2026-05-20"
+  },
+  {
+    "title": "Reading SAM Hive from Raw Volume",
+    "id": "PCR0015",
     "type": "Coverage Record",
     "status": "Active",
     "contributors": [
@@ -19,21 +136,291 @@
     "procedures": [
       "TRR0030.WIN.D"
     ],
-    "avl_rule": "AVL_R230077",
-    "rule_version": "1",
-    "avl_use_case": "AVL_UC146843",
-    "schedule": "1h",
-    "lookback": "Standard",
-    "mode": "Alert",
-    "severity": "Medium",
-    "confidence": "Low",
-    "tr_playbook": "tr_ioc_match",
-    "last_update": "2026-04-16",
-    "pub_date": "2026-04-16"
+    "last_update": "2026-05-20",
+    "pub_date": "2026-05-20"
   },
   {
-    "title": "Writing SAM or SYSTEM Hive to Disk",
-    "id": "PCR0011",
+    "title": "Windows Security or System Event Log Cleared",
+    "id": "PCR0016",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1070.001"
+    ],
+    "procedures": [
+      "TRR0023.WIN.A"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Roasted Canary (Kerberoasting)",
+    "id": "PCR0017",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1558.003"
+    ],
+    "procedures": [
+      "TRR0018.AD.A",
+      "TRR0018.AD.B"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "LSA Protection Disabled",
+    "id": "PCR0018",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1003.001"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "HTA written with the Mark of the Web (MotW)",
+    "id": "PCR0019",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew Vanvleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1218.005"
+    ],
+    "procedures": [
+      "TRR0016.WIN.A"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Unusual Number of Service Tickets Requested (Kerberoasting)",
+    "id": "PCR0020",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1558.003"
+    ],
+    "procedures": [
+      "TRR0018.AD.A",
+      "TRR0018.AD.B"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Event Log Cleared via Registry Redirection",
+    "id": "PCR0021",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1070.001"
+    ],
+    "procedures": [
+      "TRR0023.WIN.C"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "MSHTA Executing Inline Script or Remote File",
+    "id": "PCR0022",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1218.005"
+    ],
+    "procedures": [
+      "TRR0016.WIN.A"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Zscaler Malicious File Download Allowed",
+    "id": "PCR0023",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Linux",
+      "Windows",
+      "macOS"
+    ],
+    "tactics": [
+      "Execution"
+    ],
+    "techniques": [
+      "T1204.002"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "All Exchange Mailbox Logs Disabled",
+    "id": "PCR0024",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Office Suite"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1562.008"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Exchange Individual Mailbox Audit Logging Changes",
+    "id": "PCR0025",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Office Suite"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1562.008"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Kerberos U2U+S4U2Self Request (Sapphire Ticket)",
+    "id": "PCR0026",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+      "Andrew VanVleet"
+    ],
+    "platforms": [
+      "Windows"
+    ],
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      "T1558.001"
+    ],
+    "procedures": [
+      "TRR0013.AD.B"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "M365 Unified Audit Logs Disabled",
+    "id": "PCR0027",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+    ],
+    "platforms": [
+      "Office Suite"
+    ],
+    "tactics": [
+      "Defense Evasion"
+    ],
+    "techniques": [
+      "T1562.008"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "MSHTA Abuse for Downloads and Remote Script Execution",
+    "id": "PCR0028",
     "type": "Coverage Record",
     "status": "Active",
     "contributors": [
@@ -43,61 +430,22 @@
       "Windows"
     ],
     "tactics": [
-      "Credential Access"
+      "Defense Evasion"
     ],
     "techniques": [
-      "T1003.002"
+      "T1218.005"
     ],
     "procedures": [
-      "TRR0030.WIN.A", "TRR0030.WIN.B", "TRR0030.WIN.C", "TRR0030.WIN.D"
-    ]
+      "TRR0016.WIN.A",
+      "TRR0016.WIN.B"
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
   },
   {
-    "title": "Test UD Detection",
-    "id": "PCR0012",
-    "type": "Detection - SecFirst",
-    "status": "Retired",
-    "contributors": [
-      ""
-    ],
-    "platforms": [
-      "Windows"
-    ],
-    "tactics": [
-      "Initial Access"
-    ],
-    "techniques": [
-      "T0000"
-    ],
-    "procedures": [
-      "TRR0000.XXX.X"
-    ]
-  },
-  {
-    "title": "Local SAM Credential Enumeration",
-    "id": "PCR0013",
+    "title": "MSHTA Abuse for Downloads and Remote Script Execution",
+    "id": "PCR0029",
     "type": "Gap Record",
-    "status": "Active",
-    "contributors": [
-      ""
-    ],
-    "platforms": [
-      "Windows"
-    ],
-    "tactics": [
-      "Credential Access"
-    ],
-    "techniques": [
-      "T0003.002"
-    ],
-    "procedures": [
-      "TRR0030.WIN.A"
-    ]
-  },
-  {
-    "title": "Azure Domain Trust Modification",
-    "id": "PCR0014",
-    "type": "Detection - SecFirst",
     "status": "Active",
     "contributors": [
       "Andrew VanVleet"
@@ -106,24 +454,38 @@
       "Windows"
     ],
     "tactics": [
-      "Persistence", "Defense Impairment"
+      "Defense Evasion"
     ],
     "techniques": [
-      "T1484.002", "T1556.007"
+      "T1218.005"
     ],
     "procedures": [
-      "TRR0031.AZR.A", "TRR0031.AZR.B"
+      "TRR0016.WIN.A"
     ],
-    "avl_rule": "AVL_R237862",
-    "rule_version": "1",
-    "avl_use_case": "AVL_UC151189",
-    "schedule": "1h",
-    "lookback": "Standard",
-    "mode": "Alert",
-    "severity": "Medium",
-    "confidence": "Low",
-    "tr_playbook": "tr_ioc_match",
-    "last_update": "2026-04-16",
-    "pub_date": "2026-04-16"
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
+  },
+  {
+    "title": "Entra ID Global Admin Elevated to Root",
+    "id": "PCR0030",
+    "type": "Detection - SecFirst",
+    "status": "Active",
+    "contributors": [
+    ],
+    "platforms": [
+      "IaaS"
+    ],
+    "tactics": [
+      "Privilege Escalation"
+    ],
+    "techniques": [
+      "T1078.004",
+      "AZT402"
+    ],
+    "procedures": [
+      ""
+    ],
+    "last_update": "2026-05-22",
+    "pub_date": "2026-05-22"
   }
 ]
