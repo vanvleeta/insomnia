@@ -109,9 +109,6 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
   card.append(tags);
 
   // Procedure list
-  card.append(el('div', { class: 'proc-count' },
-    `${trr.procedures.length} procedure${trr.procedures.length === 1 ? '' : 's'}`));
-
   const list = el('div', { class: 'proc-list' });
   for (const proc of trr.procedures) {
     if (hasPcr) {

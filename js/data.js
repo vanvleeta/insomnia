@@ -457,7 +457,7 @@ export function trrUrl(trr, model) {
   } else if (trr.platforms && trr.platforms[0]) {
     plat = trr.platforms[0].toLowerCase();
   }
-  return plat ? `${src._linkBase}/${id}/${plat}/README.md` : `${src._linkBase}/${id}/README.md`;
+  return plat ? `${src._linkBase}/reports/${id}/${plat}/README.md` : `${src._linkBase}/reports/${id}/README.md`;
 }
 
 // Build the public README URL for a PCR.

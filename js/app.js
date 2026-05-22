@@ -74,7 +74,7 @@ function injectContributeButton() {
   if (document.getElementById('contribute-fab')) return;
   const a = document.createElement('a');
   a.id = 'contribute-fab';
-  a.href = 'https://github.com/tired-labs/techniques/blob/main/docs/CONTRIBUTING.md';
+  a.href = 'https://github.com/tired-labs/library';
   a.target = '_blank';
   a.rel = 'noopener';
   a.setAttribute('aria-label', 'Contribute to the TRR library');

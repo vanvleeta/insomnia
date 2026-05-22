@@ -691,7 +691,13 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   border-top: 1px solid var(--hairline);
 }
 
-.proc-list { display: flex; flex-direction: column; }
+.proc-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+  padding-top: 8px;
+  margin-top: 6px;
+}
 
 .proc-row {
   display: grid;
@@ -699,7 +705,7 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   gap: 9px;
   align-items: center;
   padding: 3px 0;
-  font-size: 12px;
+  font-size: 14px;
 }
 .proc-row.no-coverage {
   grid-template-columns: 22px 1fr;

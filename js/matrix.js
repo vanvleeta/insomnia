@@ -126,10 +126,7 @@ function renderCell(trr, model) {
 }
 
 function renderLegend(hasPcr) {
-  if (!hasPcr) return el('div', { class: 'legend' },
-    el('span', { class: 'legend-item' },
-      el('span', { class: 'legend-sw', style: 'background: var(--bg-inset); border: 1px solid var(--border-strong);' }),
-      'TRR'));
+  if (!hasPcr) return null;
   return el('div', { class: 'legend' },
     el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw covered' }), 'covered'),
     el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw partial' }), 'partial'),
