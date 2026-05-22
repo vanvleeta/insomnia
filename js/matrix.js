@@ -7,23 +7,7 @@
    ============================================================ */
 
 import { loadInsomniaData, STATE, trrUrl } from './data.js';
-
-function el(tag, attrs, ...kids) {
-  const n = document.createElement(tag);
-  if (attrs) {
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === 'class') n.className = v;
-      else if (k === 'html') n.innerHTML = v;
-      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
-    }
-  }
-  for (const kid of kids.flat()) {
-    if (kid == null || kid === false) continue;
-    n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
-  }
-  return n;
-}
+import { el, trrCoveragePct } from './utils.js';
 
 // Overall coverage state for a TRR by aggregating its procedure states.
 function trrOverallState(trr, hasPcr) {
@@ -41,13 +25,6 @@ function trrOverallState(trr, hasPcr) {
   if (gap === total) return STATE.GAP;
   if (opportunity === total) return STATE.OPPORTUNITY;
   return STATE.PARTIAL;
-}
-
-function trrCoveragePct(trr) {
-  if (!trr.procedures.length) return 0;
-  let sum = 0;
-  for (const p of trr.procedures) sum += p.fraction;
-  return (sum / trr.procedures.length) * 100;
 }
 
 // MITRE ATT&CK tactic ordering for the kill chain reading order. Tactics

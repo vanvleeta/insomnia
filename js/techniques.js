@@ -4,30 +4,7 @@
    ============================================================ */
 
 import { loadInsomniaData, STATE, trrUrl } from './data.js';
-
-function el(tag, attrs, ...kids) {
-  const n = document.createElement(tag);
-  if (attrs) {
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === 'class') n.className = v;
-      else if (k === 'html') n.innerHTML = v;
-      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
-    }
-  }
-  for (const kid of kids.flat()) {
-    if (kid == null || kid === false) continue;
-    n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
-  }
-  return n;
-}
-
-function trrCoveragePct(trr) {
-  if (!trr.procedures.length) return 0;
-  let sum = 0;
-  for (const p of trr.procedures) sum += p.fraction;
-  return (sum / trr.procedures.length) * 100;
-}
+import { el, uniqueSorted, trrCoveragePct } from './utils.js';
 
 function trrCoverageClass(pct) {
   if (pct >= 75) return 'high';
@@ -52,14 +29,14 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
 
   // Title is a hyperlink to the source TRR page when a BaseUrl is configured.
   const titleNode = sourceUrl
-    ? el('a', { class: 'trr-card-title-link', href: sourceUrl, target: '_blank', rel: 'noopener' }, trr.name)
+    ? el('a', { class: 'card-title-link', href: sourceUrl, target: '_blank', rel: 'noopener' }, trr.name)
     : trr.name;
 
   // IDs row: TRR ID + external IDs, truncated to one line.
   const idLink = sourceUrl
     ? el('a', { href: sourceUrl, target: '_blank', rel: 'noopener' }, trr.id)
     : trr.id;
-  const ids = el('div', { class: 'trr-card-ids mono' }, idLink);
+  const ids = el('div', { class: 'card-ids mono' }, idLink);
 
   // Fit as many external IDs as we can on a single visual line.
   // Strategy: character budget — the IDs row is one nowrap line, and IDs are
@@ -85,8 +62,8 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
   }
 
   // Card head — coverage % only when we have a PCR source
-  const headLeft = el('div', { class: 'trr-card-head-left' },
-    el('div', { class: 'trr-card-title' }, titleNode),
+  const headLeft = el('div', { class: 'card-head-left' },
+    el('div', { class: 'card-title' }, titleNode),
     ids,
   );
   const headChildren = [headLeft];
@@ -95,10 +72,10 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
       Math.round(pct) + '%',
       el('span', { class: 'pct-label' }, 'COVERED')));
   }
-  card.append(el('div', { class: 'trr-card-head' }, ...headChildren));
+  card.append(el('div', { class: 'card-head' }, ...headChildren));
 
   // Tags: source, platforms, tactics
-  const tags = el('div', { class: 'trr-tags' });
+  const tags = el('div', { class: 'item-tags' });
   tags.append(el('span', { class: 'tag source', title: 'Source repo' }, trr.sourceName));
   for (const plat of trr.platforms) {
     tags.append(el('span', { class: 'tag platform' }, plat));
@@ -132,10 +109,6 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
   card.append(list);
 
   return card;
-}
-
-function uniqueSorted(items) {
-  return Array.from(new Set(items)).sort();
 }
 
 function matchesFilters(trr, filters) {
@@ -284,7 +257,7 @@ export async function renderTechniquesView(container, options = {}) {
   const meta = el('div', { class: 'results-meta' });
   container.append(meta);
 
-  const grid = el('div', { class: 'trr-grid' });
+  const grid = el('div', { class: 'item-grid' });
   container.append(grid);
 
   function rerender() {

@@ -9,27 +9,7 @@
    ============================================================ */
 
 import { loadInsomniaData, PCR_TYPE, pcrUrl } from './data.js';
-
-function el(tag, attrs, ...kids) {
-  const n = document.createElement(tag);
-  if (attrs) {
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === 'class') n.className = v;
-      else if (k === 'html') n.innerHTML = v;
-      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
-    }
-  }
-  for (const kid of kids.flat()) {
-    if (kid == null || kid === false) continue;
-    n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
-  }
-  return n;
-}
-
-function uniqueSorted(items) {
-  return Array.from(new Set(items)).sort();
-}
+import { el, uniqueSorted } from './utils.js';
 
 const TYPE_DISPLAY = {
   [PCR_TYPE.GAP]:       'gap',
@@ -48,13 +28,13 @@ function renderPcrCard(pcr, model, href) {
   const card = el('div', { class: 'pcr-card' });
 
   const titleNode = href
-    ? el('a', { class: 'pcr-card-title-link', href, target: '_blank', rel: 'noopener' }, pcr.title || '(untitled)')
+    ? el('a', { class: 'card-title-link', href, target: '_blank', rel: 'noopener' }, pcr.title || '(untitled)')
     : (pcr.title || '(untitled)');
 
   const idLink = href
     ? el('a', { href, target: '_blank', rel: 'noopener' }, pcr.id)
     : pcr.id;
-  const ids = el('div', { class: 'pcr-card-ids mono' }, idLink);
+  const ids = el('div', { class: 'card-ids mono' }, idLink);
   for (const tech of pcr.techniques.slice(0, 3)) {
     ids.append(document.createTextNode(' · '), tech);
   }
@@ -69,7 +49,7 @@ function renderPcrCard(pcr, model, href) {
   const isDetached = !pcr.procedures || pcr.procedures.length === 0;
 
   // Card head: title + IDs (left) and type/status (right)
-  const headRight = el('div', { class: 'pcr-card-head-right' });
+  const headRight = el('div', { class: 'card-head-right' });
   if (pcr.type) {
     headRight.append(el('span', {
       class: `status-tag ${typeTagClass(pcr.type)}`,
@@ -80,16 +60,16 @@ function renderPcrCard(pcr, model, href) {
     headRight.append(el('span', { class: 'status-tag retired' }, 'retired'));
   }
 
-  card.append(el('div', { class: 'pcr-card-head' },
-    el('div', { class: 'pcr-card-head-left' },
-      el('div', { class: 'pcr-card-title' }, titleNode),
+  card.append(el('div', { class: 'card-head' },
+    el('div', { class: 'card-head-left' },
+      el('div', { class: 'card-title' }, titleNode),
       ids,
     ),
     headRight,
   ));
 
   // Tags row: source, platforms, tactics, detached marker
-  const tags = el('div', { class: 'trr-tags' });
+  const tags = el('div', { class: 'item-tags' });
   tags.append(el('span', { class: 'tag source', title: 'Source repo' }, pcr.sourceName));
   if (isDetached) {
     tags.append(el('span', { class: 'tag detached', title: 'No procedure references' }, 'detached'));
@@ -302,7 +282,7 @@ export async function renderRecordsView(container) {
   const meta = el('div', { class: 'results-meta' });
   container.append(meta);
 
-  const grid = el('div', { class: 'pcr-grid' });
+  const grid = el('div', { class: 'item-grid' });
   container.append(grid);
 
   function updateFilterBanner() {

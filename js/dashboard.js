@@ -7,6 +7,7 @@ import {
   computeMetrics, coverageByTactic, coverageByPlatform,
   topGaps, topOpportunities, buildTrend, trendDelta, latestAdditions
 } from './metrics.js';
+import { el } from './utils.js';
 
 // --- Utilities -------------------------------------------------------
 
@@ -14,23 +15,6 @@ const fmtScore = (n) => Math.round(n).toString();
 const fmtPct   = (n) => n.toFixed(1);
 const fmtInt   = (n) => Math.round(n).toString();
 const fmtDelta = (n, digits = 1) => (n >= 0 ? '+' : '') + n.toFixed(digits);
-
-function el(tag, attrs, ...kids) {
-  const n = document.createElement(tag);
-  if (attrs) {
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === 'class') n.className = v;
-      else if (k === 'html') n.innerHTML = v;
-      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
-    }
-  }
-  for (const kid of kids.flat()) {
-    if (kid == null || kid === false) continue;
-    n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
-  }
-  return n;
-}
 
 // --- Sparkline -------------------------------------------------------
 
@@ -239,9 +223,9 @@ function renderOrphanBanner(orphans, detached) {
   if (oCount === 0 && dCount === 0) {
     return el('div', { class: 'orphan-banner is-clean' },
       el('div', { class: 'orphan-icon', html: '<i class="ti ti-check"></i>' }),
-      el('div', { class: 'body' },
-        el('div', { class: 'title' }, 'No orphaned or detached PCRs'),
-        el('div', { class: 'detail' }, 'Every PCR references a known procedure. The data is clean.'))
+      el('div', { class: 'orphan-body' },
+        el('div', { class: 'orphan-title' }, 'No orphaned or detached PCRs'),
+        el('div', { class: 'orphan-detail' }, 'Every PCR references a known procedure. The data is clean.'))
     );
   }
 
@@ -250,24 +234,24 @@ function renderOrphanBanner(orphans, detached) {
     const detail = orphans.map(o => `${o.id} → ${o.procedures.join(', ')}`).join('  ·  ');
     return el('div', { class: 'orphan-banner' },
       el('div', { class: 'orphan-icon', html: '<i class="ti ti-alert-triangle"></i>' }),
-      el('div', { class: 'body' },
-        el('div', { class: 'title' },
+      el('div', { class: 'orphan-body' },
+        el('div', { class: 'orphan-title' },
           `${oCount} orphaned ${oCount === 1 ? 'PCR' : 'PCRs'}` +
           (dCount ? ` · ${dCount} detached` : '')),
-        el('div', { class: 'detail' }, detail)),
-      el('a', { class: 'review-btn', href: 'records.html?type=orphaned' }, 'Review →')
+        el('div', { class: 'orphan-detail' }, detail)),
+      el('a', { class: 'orphan-review-btn', href: 'records.html?type=orphaned' }, 'Review →')
     );
   }
 
   // Only detached PCRs — they're valid but worth surfacing.
   return el('div', { class: 'orphan-banner is-detached' },
     el('div', { class: 'orphan-icon', html: '<i class="ti ti-link-off"></i>' }),
-    el('div', { class: 'body' },
-      el('div', { class: 'title' },
+    el('div', { class: 'orphan-body' },
+      el('div', { class: 'orphan-title' },
         `${dCount} detached ${dCount === 1 ? 'PCR' : 'PCRs'}`),
-      el('div', { class: 'detail' },
+      el('div', { class: 'orphan-detail' },
         'PCRs without procedure references. They count toward awareness but not coverage.')),
-    el('a', { class: 'review-btn', href: 'records.html?type=detached' }, 'Review →')
+    el('a', { class: 'orphan-review-btn', href: 'records.html?type=detached' }, 'Review →')
   );
 }
 
