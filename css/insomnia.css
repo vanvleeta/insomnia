@@ -705,7 +705,7 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   gap: 9px;
   align-items: center;
   padding: 3px 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 .proc-row.no-coverage {
   grid-template-columns: 22px 1fr;
@@ -1110,7 +1110,7 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   padding: 3px 6px;
   margin: 0 -6px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text);
   text-decoration: none;
   transition: background 100ms;
