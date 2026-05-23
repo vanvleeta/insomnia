@@ -1073,7 +1073,14 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   background: rgba(245, 200, 122, 0.06);
 }
 
-.pcr-proc-list { display: flex; flex-direction: column; gap: 2px; }
+.pcr-proc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 8px;
+  margin-top: 6px;
+}
 .pcr-proc-ref {
   display: grid;
   grid-template-columns: 112px 1fr;

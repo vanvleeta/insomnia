@@ -84,8 +84,6 @@ function renderPcrCard(pcr, model, href) {
 
   // Referenced procedures (link back to techniques)
   if (!isDetached && pcr.procedures.length > 0) {
-    card.append(el('div', { class: 'proc-count' },
-      `${pcr.procedures.length} procedure${pcr.procedures.length === 1 ? '' : 's'}`));
     const list = el('div', { class: 'pcr-proc-list' });
     for (const procId of pcr.procedures) {
       const proc = model.procedures.get(procId);
