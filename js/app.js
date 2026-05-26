@@ -78,6 +78,11 @@ function injectContributeButton() {
   a.target = '_blank';
   a.rel = 'noopener';
   a.setAttribute('aria-label', 'Contribute to the TRR library');
-  a.innerHTML = '<i class="ti ti-git-pull-request" aria-hidden="true"></i><span>Contribute</span>';
+  const icon = document.createElement('i');
+  icon.className = 'ti ti-git-pull-request';
+  icon.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.textContent = 'Contribute';
+  a.append(icon, label);
   document.body.append(a);
 }

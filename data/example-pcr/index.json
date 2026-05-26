@@ -203,7 +203,9 @@
     "techniques": [
       "T1003.001"
     ],
-    "procedures": null,
+    "procedures": [
+      ""
+    ],
     "last_update": "2026-05-22",
     "pub_date": "2026-05-22"
   },
@@ -319,7 +321,9 @@
     "techniques": [
       "T1204.002"
     ],
-    "procedures": null,
+    "procedures": [
+      ""
+    ],
     "last_update": "2026-05-22",
     "pub_date": "2026-05-22"
   },

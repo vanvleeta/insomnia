@@ -155,7 +155,7 @@ export async function renderTechniquesView(container, options = {}) {
   } catch (e) {
     container.innerHTML = '';
     container.append(el('div', { class: 'error-banner' },
-      el('div', { html: '<div class="err-title">Could not load Insomnia data</div>' }),
+      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
       el('div', { class: 'err-detail' }, e.message)));
     return;
   }

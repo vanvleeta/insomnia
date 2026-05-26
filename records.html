@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src 'self'; connect-src 'self' https://raw.githubusercontent.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
   <title>Insomnia — Records</title>
   <link rel="icon" type="image/x-icon" href="img/favicon/favicon.ico">
   <link rel="icon" type="image/png" href="img/favicon/favicon-96x96.png?v=20260518" sizes="96x96" />
@@ -12,14 +13,9 @@
   <meta name="apple-mobile-web-app-title" content="TIRED Labs" />
   <link rel="manifest" href="img/favicon/site.webmanifest?v=20260518" />
   <link rel="stylesheet" href="css/insomnia.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" crossorigin="anonymous" integrity="sha256-8UsrQBPDRBhPhpi9f3MAyddvpwiKFsEE4Di8/h7jCFs=">
   <script type="module" src="js/app.js"></script>
-  <script type="module">
-    import { renderRecordsView } from './js/records.js';
-    document.addEventListener('DOMContentLoaded', () => {
-      renderRecordsView(document.getElementById('app'));
-    });
-  </script>
+  <script type="module" src="js/init-records.js"></script>
 </head>
 <body>
   <header class="header">

@@ -175,13 +175,7 @@ function renderBarChart(title, rows, showLegend = true) {
       }
     }
 
-    const pctClass = row.pct >= 60 ? '' : (row.pct >= 30 ? 'mid' : (row.pct > 0 ? 'low' : 'zero'));
-    const pctColor = row.pct >= 60 ? 'var(--covered)' :
-                     row.pct >= 30 ? 'var(--partial)' :
-                     row.pct >  0  ? 'var(--gap)'     : 'var(--text-dim)';
-
     const pctEl = el('span', { class: 'pct' }, fmtInt(row.pct) + '%');
-    pctEl.style.color = pctColor;
 
     card.append(el('div', { class: 'bar-row' },
       el('span', { class: 'name', title: row.name }, row.name),
@@ -222,7 +216,7 @@ function renderOrphanBanner(orphans, detached) {
   // Clean state: no orphans and no detached
   if (oCount === 0 && dCount === 0) {
     return el('div', { class: 'orphan-banner is-clean' },
-      el('div', { class: 'orphan-icon', html: '<i class="ti ti-check"></i>' }),
+      el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-check', 'aria-hidden': 'true' })),
       el('div', { class: 'orphan-body' },
         el('div', { class: 'orphan-title' }, 'No orphaned or detached PCRs'),
         el('div', { class: 'orphan-detail' }, 'Every PCR references a known procedure. The data is clean.'))
@@ -233,7 +227,7 @@ function renderOrphanBanner(orphans, detached) {
   if (oCount > 0) {
     const detail = orphans.map(o => `${o.id} → ${o.procedures.join(', ')}`).join('  ·  ');
     return el('div', { class: 'orphan-banner' },
-      el('div', { class: 'orphan-icon', html: '<i class="ti ti-alert-triangle"></i>' }),
+      el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-alert-triangle', 'aria-hidden': 'true' })),
       el('div', { class: 'orphan-body' },
         el('div', { class: 'orphan-title' },
           `${oCount} orphaned ${oCount === 1 ? 'PCR' : 'PCRs'}` +
@@ -245,7 +239,7 @@ function renderOrphanBanner(orphans, detached) {
 
   // Only detached PCRs — they're valid but worth surfacing.
   return el('div', { class: 'orphan-banner is-detached' },
-    el('div', { class: 'orphan-icon', html: '<i class="ti ti-link-off"></i>' }),
+    el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-link-off', 'aria-hidden': 'true' })),
     el('div', { class: 'orphan-body' },
       el('div', { class: 'orphan-title' },
         `${dCount} detached ${dCount === 1 ? 'PCR' : 'PCRs'}`),
