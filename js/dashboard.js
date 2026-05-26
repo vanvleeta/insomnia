@@ -200,7 +200,7 @@ function renderTopList(title, items, tagCls, emptyMsg) {
       list.append(el('div', { class: 'gap-item' },
         el('span', { class: 'desc' },
           el('span', { class: 'id mono' }, item.proc.id),
-          item.trr ? item.trr.name : item.proc.name),
+          item.proc.name),
         el('span', { class: `status-tag ${tagCls}` }, tagText)
       ));
     }
