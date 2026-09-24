@@ -145,14 +145,32 @@ merge, so its index arrives within seconds. Both derive the target directory
 from the source Name the same way, so a push and a pull write to the same
 place rather than creating two copies.
 
-Private sources are fetched through the Contents API with a GitHub App token.
-Public sources are fetched from the raw URL with no credentials — an App token
-is scoped to its installation and GitHub answers 404 outside it even for a
-public repository, so sending one would break the fetch rather than help it.
+Each source sets `Load`, naming where its index comes from rather than how
+visible its repository is — the two are independent, and a public repository
+can reasonably be synced:
 
-The browser never fetches a source repository. It reads the synced copy under
-`data/`, because a private repository cannot be fetched from a page at all,
-and a public one would be a second copy of data the workflows already
-maintain. `Repo` is used only to build links out to individual records, which
-the viewer opens with their own credentials. Both commit only when data actually
+| `Load` | Browser reads | Sync pulls it |
+|--------|---------------|---------------|
+| `live` (default) | the repository's raw URL, directly | no |
+| `synced` | the copy under `data/<slug>/` | yes |
+
+A browser cannot fetch a private repository and has nowhere safe to keep a
+token, so private data must be `synced`. Public data can be either, and a
+library-only deployment — the configuration serving a public TRR library —
+works with no workflow configured at all.
+
+The sync decides for itself whether it needs credentials. It fetches the raw
+URL with none first, and retries through the Contents API with the App token
+only if that fails. A public repository therefore never has the token sent to
+it — which matters, because GitHub answers 404 when an App token is sent to a
+repository outside the App's installation, even a public one. That behaviour is
+why no per-source auth setting is needed.
+
+A `live` source must be on a host the page's Content-Security-Policy allows,
+which is `raw.githubusercontent.com`. Insomnia warns at load when one is not,
+so the browser's refusal comes with its cause attached. An Enterprise source
+should be `synced`, which also avoids the instance's SSO and CORS rules.
+
+`Repo` always builds the links out to individual records, which the viewer
+opens with their own credentials. Both commit only when data actually
 changed, keeping history to the days something moved.

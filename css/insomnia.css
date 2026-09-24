@@ -1160,3 +1160,48 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   color: var(--text-strong);
   border-color: var(--brand);
 }
+
+/* ---------------------------------------------------------------------
+   Optional site banner. Rendered only when local/config.json defines one;
+   core ships none. See initBanner() in js/app.js.
+   --------------------------------------------------------------------- */
+.site-banner {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+.site-banner-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 18px 28px;
+  border-left: 3px solid var(--brand);
+}
+.site-banner-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.site-banner-body {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 78ch;
+}
+.site-banner-body a { color: var(--brand); text-decoration: none; }
+.site-banner-body a:hover { text-decoration: underline; }
+.site-banner-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.site-banner-link {
+  font-size: 13px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+.site-banner-link:hover { border-color: var(--brand); color: var(--brand); }

@@ -74,9 +74,131 @@ async function initSourceSummary() {
   }
 }
 
+// ---------------------------------------------------------------------
+// Optional site banner.
+//
+// Core ships no banner. An instance that wants one -- the public TRR
+// library explaining what the site is, or an internal deployment marking
+// itself as confidential -- adds a "banner" block to local/config.json:
+//
+//   "banner": {
+//     "title": "The TIRED Labs Technique Research Library",
+//     "body":  ["A paragraph, with [inline links](https://example.com)."],
+//     "links": [{ "text": "Contribute", "href": "https://..." }]
+//   }
+//
+// It is built from elements rather than injected as HTML: the page's
+// Content-Security-Policy forbids inline styles, and building nodes means a
+// banner cannot carry markup or script into the page. It is inserted after
+// the header rather than into <main>, because every view clears <main> when
+// it renders.
+// ---------------------------------------------------------------------
+
+// Only ordinary web links. Anything else -- javascript:, data: -- is
+// dropped, so a banner cannot become a way to run code.
+function safeHref(href) {
+  const value = String(href || '').trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[./#?]|^[a-z0-9_-]+\.html/i.test(value)) return value;  // relative
+  return null;
+}
+
+// Turn "text with [a link](https://x)" into text and anchor nodes.
+function renderInline(text) {
+  const nodes = [];
+  const pattern = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+  let last = 0;
+  let match;
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) {
+      nodes.push(document.createTextNode(text.slice(last, match.index)));
+    }
+    const href = safeHref(match[2]);
+    if (href) {
+      const a = document.createElement('a');
+      a.href = href;
+      a.textContent = match[1];
+      if (/^https?:/i.test(href)) {
+        a.target = '_blank';
+        a.rel = 'noopener';
+      }
+      nodes.push(a);
+    } else {
+      nodes.push(document.createTextNode(match[1]));
+    }
+    last = pattern.lastIndex;
+  }
+  if (last < text.length) nodes.push(document.createTextNode(text.slice(last)));
+  return nodes;
+}
+
+async function initBanner() {
+  let config;
+  try {
+    const r = await fetch('local/config.json', { cache: 'no-cache' });
+    config = await r.json();
+  } catch (_) {
+    return;                                 // no config, no banner
+  }
+
+  const banner = config && config.banner;
+  if (!banner || (!banner.title && !banner.body)) return;
+
+  const header = document.querySelector('header.header');
+  if (!header) return;
+
+  const section = document.createElement('section');
+  section.className = 'site-banner';
+  section.setAttribute('role', 'region');
+  section.setAttribute('aria-label', banner.title || 'About this site');
+
+  const inner = document.createElement('div');
+  inner.className = 'site-banner-inner';
+
+  if (banner.title) {
+    const h = document.createElement('h2');
+    h.className = 'site-banner-title';
+    h.textContent = banner.title;
+    inner.append(h);
+  }
+
+  const paragraphs = Array.isArray(banner.body) ? banner.body
+                   : banner.body ? [banner.body] : [];
+  for (const text of paragraphs) {
+    const para = document.createElement('p');
+    para.className = 'site-banner-body';
+    para.append(...renderInline(String(text)));
+    inner.append(para);
+  }
+
+  const links = (banner.links || [])
+    .map(l => ({ text: l && l.text, href: safeHref(l && l.href) }))
+    .filter(l => l.text && l.href);
+  if (links.length) {
+    const row = document.createElement('div');
+    row.className = 'site-banner-links';
+    for (const link of links) {
+      const a = document.createElement('a');
+      a.className = 'site-banner-link';
+      a.href = link.href;
+      a.textContent = link.text;
+      if (/^https?:/i.test(link.href)) {
+        a.target = '_blank';
+        a.rel = 'noopener';
+      }
+      row.append(a);
+    }
+    inner.append(row);
+  }
+
+  section.append(inner);
+  header.insertAdjacentElement('afterend', section);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initSourceSummary();
+  initBanner();
   injectContributeButton();
   initLibraryOnlyMode();
 });

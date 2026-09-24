@@ -10,8 +10,8 @@
     {
       "Name": "ACME Coverage",
       "Type": "coverage",
-      "Private": true,
-      "Repo": "https://github.example.com/acme/coverage-records"
+      "Repo": "https://github.example.com/acme/coverage-records",
+      "Load": "synced"
     }
   ]
 }

@@ -46,7 +46,7 @@ Each source needs a `Name`, a `Type`, and either a `Repo` or a `LocalPath`:
     { "Name": "ACME Coverage", "Type": "coverage",
       "Repo": "https://github.example.com/acme/coverage-records",
       "Branch": "main",
-      "Private": true }
+      "Load": "synced" }
   ]
 }
 ```
@@ -58,18 +58,25 @@ directory, which you would then delete by hand.
 **`Type`** is one of `library`, `coverage`, `validation`, or `emulation`.
 Validation and emulation are pulled but not yet displayed.
 
-**`Private`** marks a source whose index needs a token to fetch. Leave it off
-for public repositories.
+**`Load`** says where the source's index comes from:
 
-This is not an optimization — it is required. A GitHub App token is scoped to
-the repositories the App is installed on, and GitHub answers 404 for anything
-outside that installation *even when the repository is public*. Sending a
-token to a public source therefore breaks it. Public sources are fetched from
-the raw URL with no credentials; private ones go through the Contents API with
-the App token.
+| Value | Meaning | Use for |
+|-------|---------|---------|
+| `live` (default) | The browser fetches it directly | Public repositories on github.com |
+| `synced` | The sync workflows bring it into `data/` | Private repositories, and anything on GitHub Enterprise |
 
-You also cannot install an App on a repository you do not control, so a public
-upstream library can only ever be fetched unauthenticated.
+A private repository **must** be `synced`: a browser cannot fetch it, and a
+static page has nowhere safe to keep a token. Leaving one on `live` fails
+loudly with a 404 in the load errors rather than quietly showing nothing.
+
+An Enterprise source should be `synced` even when public. The page's
+Content-Security-Policy only allows the browser to reach
+`raw.githubusercontent.com`, and Insomnia warns at load if a `live` source is
+anywhere else.
+
+You never tell Insomnia whether a source needs a token. The sync tries without
+one first and uses the App token only if that fails, so public sources work
+whether or not a token is present.
 
 **`excludePlatforms`** lists platforms your organization does not run. They are
 dropped at load, so they disappear from views *and* from metrics — if you have
@@ -81,6 +88,37 @@ no AWS, AWS reports stop counting against your coverage.
 
 Use the display name exactly as the source writes it; matching is
 case-insensitive.
+
+### Optional: a site banner
+
+An instance can show a banner under the header on every page — the public TRR
+library explaining what the site is, or an internal deployment marking itself
+confidential. Core ships none; add a `banner` block to your
+`local/config.json`:
+
+```json
+"banner": {
+  "title": "Technique Research Report (TRR) Library",
+  "body": [
+    "A paragraph. Inline links use [markdown syntax](https://example.com).",
+    "Each string is its own paragraph."
+  ],
+  "links": [
+    { "text": "Contribute", "href": "https://github.com/..." }
+  ]
+}
+```
+
+`body` accepts `[text](url)` links; `links` renders a row of buttons. Both
+`title` and `body` are optional, but a banner with neither is not shown.
+
+It is plain text, not HTML. The page's Content-Security-Policy forbids inline
+styles, so pasted HTML would not render as intended anyway — and building it
+from text means a banner cannot carry markup or script into the page. Only
+`http(s)` and relative links are kept; anything else is dropped.
+
+Because it lives in `local/config.json`, the banner is yours alone and never
+conflicts with an upstream merge.
 
 ## 3. Set up the GitHub App
 
@@ -94,7 +132,7 @@ If every source is public, skip this section — no App is needed.
    - Grant **Repository permissions → Contents: Read and write**.
 2. Generate a private key and download the `.pem`.
 3. Install it on **each private source** and on **this one**. Public sources
-   need nothing.
+   need nothing — the sync reaches them without credentials.
 4. Add two secrets here under **Settings → Secrets and variables → Actions**:
    - `GH_APP_ID`
    - `GH_APP_PRIVATE_KEY`
@@ -103,7 +141,10 @@ Read access on sources and write access here is all it needs.
 
 ## 4. Pull your data
 
-Run **Sync source data** from the Actions tab. It fetches every configured
+**If no source is `synced`, skip this section.** `live` sources are read
+straight from the repository by the browser, so there is nothing to sync.
+
+For `synced` sources, run **Sync source data** from the Actions tab. It fetches every configured
 source into `data/<slug>/index.json` and commits only if something changed.
 
 Locally:
@@ -142,8 +183,9 @@ jobs:
       private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 ```
 
-`source-name` must match the `Name` in your config exactly, or the push writes
-to a directory nothing reads.
+`source-name` must match the `Name` in your config exactly, and that source
+should be `Load: "synced"` — a push writes into `data/`, which is only read for
+synced sources. Either mistake produces a directory nothing reads.
 
 Push and pull are complementary. Both write the same place, so a pull after a
 push is a no-op, and the schedule stays useful as a safety net for a source
