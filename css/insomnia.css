@@ -230,7 +230,10 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Layout ---------- */
 .main {
-  padding: 20px 24px 48px;
+  /* Bottom padding clears the brand mark fixed in the bottom-right corner
+     (16px offset + 76px tall), so the end of a page can always be scrolled
+     out from under it. */
+  padding: 20px 24px 108px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -827,7 +830,7 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   .header-nav { margin-left: 0; }
   .header-title .tagline { display: none; }
   .header-meta { display: none; }
-  .main { padding: 14px 14px 32px; }
+  .main { padding: 14px 14px 84px; }   /* clears the 53px mark + 16px offset */
   .stat-strip { grid-template-columns: repeat(2, 1fr); }
   .item-grid { grid-template-columns: 1fr; }
 }
@@ -990,6 +993,35 @@ body.library-only .nav-link[href="records.html"] { display: none; }
   #contribute-fab span { display: none; }
   #contribute-fab { padding: 8px; }
 }
+/* TIRED Labs mark -- bottom-right, mirroring #contribute-fab bottom-left:
+   same surface, border, shadow, and dimmed-until-hover treatment, so the two
+   read as a matched pair rather than competing for attention. */
+#brand-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: block;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  z-index: 50;
+  opacity: 0.7;
+  line-height: 0;
+  transition: opacity 120ms, border-color 120ms, transform 120ms;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+#brand-fab img { width: 64px; height: auto; }
+#brand-fab:hover {
+  opacity: 1;
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+@media (max-width: 600px) {
+  #brand-fab { padding: 4px; }
+  #brand-fab img { width: 44px; }
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }

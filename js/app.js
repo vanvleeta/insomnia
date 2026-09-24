@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSourceSummary();
   initBanner();
   injectContributeButton();
+  injectBrandMark();
   initLibraryOnlyMode();
 });
 
@@ -221,11 +222,40 @@ async function initLibraryOnlyMode() {
 
 // Subtle "Contribute" floating button in the bottom-left, linking to the
 // TRR Library project overview.
+// TIRED Labs mark, bottom-right -- opposite the contribute button, which sits
+// bottom-left, so the two never collide. Two images, one per theme, swapped by
+// the same .eye-dark / .eye-light rules the header logo uses.
+function injectBrandMark() {
+  if (document.getElementById('brand-fab')) return;
+  const a = document.createElement('a');
+  a.id = 'brand-fab';
+  a.href = 'https://www.tired-labs.org/';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.setAttribute('aria-label', 'TIRED Labs');
+  a.title = 'TIRED Labs';
+  for (const [cls, src] of [['eye-dark',  'img/tired-labs-for-dark-mode.png'],
+                            ['eye-light', 'img/tired-labs-for-light-mode.png']]) {
+    const img = document.createElement('img');
+    img.className = cls;
+    img.src = src;
+    img.alt = '';                 // the link carries the label
+    img.decoding = 'async';
+    a.append(img);
+  }
+  document.body.append(a);
+}
+
 function injectContributeButton() {
   if (document.getElementById('contribute-fab')) return;
   const a = document.createElement('a');
   a.id = 'contribute-fab';
-  a.href = 'https://github.com/tired-labs/library';
+  // Deliberately hardcoded to the public TRR library, in every deployment
+  // including internal ones: the aim is that anyone running Insomnia thinks
+  // of contributing research back publicly. Change it here if your instance
+  // should point elsewhere -- noting this is a core file, so the change will
+  // need re-applying after an upstream merge that touches it.
+  a.href = 'https://github.com/tired-labs/techniques/blob/main/docs/CONTRIBUTING.md';
   a.target = '_blank';
   a.rel = 'noopener';
   a.setAttribute('aria-label', 'Contribute to the TRR library');
