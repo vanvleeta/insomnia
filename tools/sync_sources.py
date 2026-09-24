@@ -15,6 +15,12 @@ import urllib.request
 CONFIG_FILE = os.path.join("local", "config.json")
 DATA_DIR = "data"
 
+# Only synced sources are pulled. A live source is fetched by the browser
+# directly, so a copy in data/ would be one nothing reads -- harmless, but
+# confusing to anyone looking at what the site actually displays.
+LOAD_SYNCED = "synced"
+DEFAULT_LOAD = "live"
+
 # Types whose index.json this deployment reads. validation and emulation
 # sources may be configured before Insomnia consumes them, so they are pulled
 # too -- having the data present is what lets a view be added without also
@@ -63,14 +69,8 @@ def public_url(parsed, branch, path="index.json"):
     return f"https://{host}/{parsed['owner']}/{parsed['repo']}/{branch}/{path}"
 
 
-def fetch_index(url, token=None):
-    """Fetch one index.json.
-
-    A token is sent only for private sources. Sending an App installation
-    token to a repository outside the installation is not merely useless --
-    GitHub answers 404 even when the repository is public, so an
-    unconditional token breaks public sources.
-    """
+def fetch_url(url, token=None):
+    """Fetch one URL, sending the token only when one is given."""
     request = urllib.request.Request(url)
     if token:
         request.add_header("Accept", "application/vnd.github.raw+json")
@@ -79,6 +79,33 @@ def fetch_index(url, token=None):
 
     with urllib.request.urlopen(request, timeout=30) as response:
         return response.read().decode("utf-8")
+
+
+def fetch_index(parsed, branch, token):
+    """Fetch a source's index.json, authenticating only if it has to.
+
+    Tries the raw URL with no credentials first, and falls back to the
+    Contents API with the token only if that fails. This is what removes the
+    need for any per-source auth setting:
+
+      * a public repository succeeds on the first request, without spending
+        API quota and without the token ever being sent to it -- which
+        matters, because GitHub answers 404 when an App token is sent to a
+        repository outside the App's installation, even a public one
+      * a private repository fails unauthenticated and succeeds on the retry
+
+    Returns (content, how) where how is "public" or "token".
+    """
+    try:
+        return fetch_url(public_url(parsed, branch)), "public"
+    except urllib.error.HTTPError as first:
+        if not token:
+            raise
+        try:
+            return fetch_url(private_url(parsed, branch), token), "token"
+        except urllib.error.HTTPError as second:
+            # The authenticated attempt is the more informative failure.
+            raise second from first
 
 
 ##############################################################################
@@ -100,13 +127,10 @@ if __name__ == "__main__":
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
 
     sources = config.get("sources", [])
-    needs_token = any(
-        s.get("Private") and not s.get("LocalPath") for s in sources
-    )
-    if needs_token and not token:
+    if not token:
         print(
-            "warning: sources are marked Private but no GH_TOKEN is set; "
-            "those fetches will fail.",
+            "note: no GH_TOKEN set. Public sources will still sync; private "
+            "ones will fail.",
             file=sys.stderr,
         )
     if not sources:
@@ -130,6 +154,12 @@ if __name__ == "__main__":
             print(f"[=] {name}: LocalPath source; nothing to fetch.")
             continue
 
+        load = str(source.get("Load", DEFAULT_LOAD)).lower()
+        if load != LOAD_SYNCED:
+            print(f"[=] {name}: Load \"{load}\"; the browser fetches it "
+                  f"directly, nothing to sync.")
+            continue
+
         parsed = parse_repo(source.get("Repo", ""))
         if not parsed:
             failures.append(f"{name}: cannot parse Repo '{source.get('Repo')}'")
@@ -137,29 +167,19 @@ if __name__ == "__main__":
             continue
 
         branch = source.get("Branch", "main")
-        is_private = bool(source.get("Private"))
-
-        if is_private:
-            url = private_url(parsed, branch)
-            auth = token
-        else:
-            url = public_url(parsed, branch)
-            auth = None
 
         try:
-            content = fetch_index(url, auth)
+            content, how = fetch_index(parsed, branch, token)
         except urllib.error.HTTPError as e:
             detail = f"HTTP {e.code}"
-            if e.code == 404 and is_private:
-                detail += (" -- check the App is installed on this source "
-                           "with Contents: read, and that index.json exists")
-            elif e.code == 404:
-                detail += (" -- index.json not found. If this source is "
-                           "private, add \"Private\": true to its config "
-                           "entry so a token is used")
-            elif e.code in (401, 403) and not is_private:
-                detail += (" -- if this source is private, add "
-                           "\"Private\": true to its config entry")
+            if e.code in (401, 403, 404) and token:
+                detail += (" -- index.json was not reachable publicly or with "
+                           "the App token. Check the App is installed on this "
+                           "repository with Contents: read, and that "
+                           "index.json exists")
+            elif e.code in (401, 403, 404):
+                detail += (" -- not reachable publicly, and no GH_TOKEN is set "
+                           "to try a private fetch")
             failures.append(f"{name}: {detail}")
             print(f"[-] {name}: {detail}")
             continue
@@ -189,8 +209,8 @@ if __name__ == "__main__":
         (target_dir / "index.json").write_text(content, encoding="utf-8")
 
         pulled += 1
-        visibility = "private" if is_private else "public"
-        print(f"[+] {name} ({visibility}): {count} record(s), "
+        via = "with token" if how == "token" else "public"
+        print(f"[+] {name} ({via}): {count} record(s), "
               f"schema {schema} -> {target_dir}")
 
     print()

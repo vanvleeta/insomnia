@@ -73,6 +73,22 @@ const STATE = {
 const CONFIG_PATH = 'local/config.json';
 const INDEX_SCHEMA_SUPPORTED = 2;
 
+// Where a source's index is read from.
+//   live    the browser fetches it from the repository directly
+//   synced  the sync workflows bring it into data/<slug>/ and the browser
+//           reads it from there
+// Named for the behaviour rather than for repository visibility, because the
+// two are independent: a public repository can reasonably be synced.
+const LOAD = {
+  LIVE:   'live',
+  SYNCED: 'synced',
+};
+const DEFAULT_LOAD = LOAD.LIVE;
+
+// Hosts the page's Content-Security-Policy lets a live source be fetched
+// from. Kept in step with connect-src in the HTML pages.
+const CSP_ALLOWED_HOSTS = ['raw.githubusercontent.com'];
+
 // --- Record type classification ---------------------------------------
 
 function classifyRecordType(rawType) {
@@ -248,20 +264,24 @@ function resolveSourceLocation(src) {
 
   const branch = src.Branch || 'main';
 
-  // The Private flag decides where the index is read from, for the same
-  // reason it decides how the sync fetches it.
-  //
-  //   public   fetched straight from the raw URL. Always current, and a
-  //            library-only deployment needs no sync workflow at all.
-  //   private  read from the synced copy under data/. A browser cannot fetch
-  //            a private repository, and has nowhere safe to keep a token.
-  if (src.Private) {
+  const load = String(src.Load || DEFAULT_LOAD).toLowerCase();
+  if (!Object.values(LOAD).includes(load)) {
+    throw new Error(
+      `Load "${src.Load}" is not recognized. Use "live" or "synced".`
+    );
+  }
+  src.Load = load;
+
+  if (load === LOAD.SYNCED) {
+    // A browser cannot fetch a private repository and has nowhere safe to
+    // keep a token, so private data arrives through the sync workflows.
     src._rawBase = `data/${sourceSlug(src.Name)}/`;
   } else {
     const rawHost = parsed.host === 'github.com'
       ? 'raw.githubusercontent.com'
       : `${parsed.host}/raw`;          // GitHub Enterprise
     src._rawBase = `https://${rawHost}/${parsed.owner}/${parsed.repo}/${branch}/`;
+    src._rawHost = rawHost.split('/')[0];
   }
 
   // Repo always builds links out to individual records, which the viewer
@@ -340,6 +360,18 @@ export async function loadInsomniaData() {
       model.sourceCounts[type] = (model.sourceCounts[type] || 0) + 1;
     } catch (e) {
       model.loadErrors.push(`Source "${src.Name}": ${e.message}`);
+    }
+  }
+
+  for (const src of model.sources) {
+    if (src.Load === LOAD.LIVE && src._rawHost &&
+        !CSP_ALLOWED_HOSTS.includes(src._rawHost)) {
+      model.warnings.push(
+        `Source "${src.Name}" is set to Load "live" on ${src._rawHost}, ` +
+        `which this page's Content-Security-Policy does not allow, so the ` +
+        `browser will refuse the fetch. Set it to "synced" so the sync ` +
+        `workflows bring its data in instead.`
+      );
     }
   }
 
@@ -521,4 +553,4 @@ function computeCoverageStates(model) {
   }
 }
 
-export { STATE, RECORD_TYPE, SOURCE_TYPE, isCoveredType };
+export { STATE, RECORD_TYPE, SOURCE_TYPE, LOAD, isCoveredType };
