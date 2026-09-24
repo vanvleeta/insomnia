@@ -4,22 +4,26 @@
   "banner": {
     "title": "TRR Library",
     "body": [
-      "A collection of technique research reports (TRR) documenting attack techniques for use in understanding, emulating, and detecting cyber attacks. New to TRRs? Start with the [TRR Guide](https://github.com/tired-labs/techniques/blob/main/docs/TECHNIQUE-RESEARCH-REPORT.md) or read about the initiative's goals in the [Project Overview](https://github.com/tired-labs/techniques/blob/main/docs/PROJECT-OVERVIEW.md).",
-      "Browse every report on the [Techniques](techniques.html) page, or see them arranged by tactic on the [Matrix](matrix.html)."
+      "A collection of technique research reports (TRR) documenting attack techniques for use in understanding, emulating, and detecting cyber attacks."
     ],
     "links": [
       {
-        "text": "Contribute a TRR",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/CONTRIBUTING.md"
+        "text": "TRR Guide",
+        "href": "https://github.com/tired-labs/techniques/blob/main/docs/TECHNIQUE-RESEARCH-REPORT.md"
       },
       {
-        "text": "FAQ",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/FAQ.md"
+        "text": "Project Overview",
+        "href": "https://github.com/tired-labs/techniques/blob/main/docs/PROJECT-OVERVIEW.md"
       },
       {
         "text": "View on GitHub",
         "href": "https://github.com/tired-labs/techniques"
+      },
+      {
+        "text": "Contribute",
+        "href": "https://github.com/tired-labs/techniques/blob/main/docs/CONTRIBUTING.md"
       }
+
     ]
   },
   "sources": [

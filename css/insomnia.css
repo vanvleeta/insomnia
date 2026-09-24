@@ -1164,16 +1164,33 @@ body.library-only .nav-link[href="records.html"] { display: none; }
 /* ---------------------------------------------------------------------
    Optional site banner. Rendered only when local/config.json defines one;
    core ships none. See initBanner() in js/app.js.
+
+   It sits outside <main> -- every view clears <main> when it renders -- so
+   the outer element reproduces .main's column (width, centering, side
+   padding) to line the card up with the page content beneath it. The card
+   itself matches .card, with the same clipped accent bar the dashboard's
+   metric cards use.
    --------------------------------------------------------------------- */
 .site-banner {
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-surface);
-}
-.site-banner-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 18px 28px;
-  border-left: 3px solid var(--brand);
+  padding: 20px 24px 0;
+}
+.site-banner-inner {
+  position: relative;
+  overflow: hidden;              /* clips the accent bar to the rounded corner */
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.site-banner-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--brand);
 }
 .site-banner-title {
   margin: 0 0 8px;
@@ -1184,24 +1201,31 @@ body.library-only .nav-link[href="records.html"] { display: none; }
 .site-banner-body {
   margin: 0 0 8px;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--text-muted);
-  max-width: 78ch;
 }
+.site-banner-body:last-child { margin-bottom: 0; }
 .site-banner-body a { color: var(--brand); text-decoration: none; }
 .site-banner-body a:hover { text-decoration: underline; }
 .site-banner-links {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 .site-banner-link {
   font-size: 13px;
   padding: 5px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--text);
   text-decoration: none;
 }
 .site-banner-link:hover { border-color: var(--brand); color: var(--brand); }
+
+/* Track .main's narrower padding on small screens, so the card stays aligned
+   with the content beneath it. */
+@media (max-width: 600px) {
+  .site-banner { padding: 14px 14px 0; }
+}
+
