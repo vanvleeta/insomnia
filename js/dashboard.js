@@ -67,17 +67,17 @@ function sparkline(values, color) {
 
 // --- Render functions ------------------------------------------------
 
-function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
+function renderHeroMetrics(metrics, trend, deltas, hasCoverage) {
   const grid = el('div', { class: 'metric-hero-grid' });
 
   // Score card — visible in both full and library-only modes, since TRRs
-  // and PCRs both contribute to the awareness score.
+  // and coverage records both contribute to the awareness score.
   const scoreCard = el('div', { class: 'card metric-hero' },
     el('div', { class: 'label' }, 'Attack surface awareness'),
     el('div', { class: 'value mono' }, fmtScore(metrics.score)),
     el('div', { class: 'sub' }, `${fmtDelta(deltas.score, 0)} in last 90 days`)
   );
-  const scoreSpark = sparkline(trend.map(p => p.score), 'var(--brand)');
+  const scoreSpark = sparkline(trend.map(p => p.score), 'var(--covered)');
   if (scoreSpark) {
     const wrap = el('div', { class: 'sparkline' });
     wrap.append(scoreSpark);
@@ -86,7 +86,7 @@ function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
 
   // Surface card only when we have coverage data. Otherwise the score
   // card spans full width.
-  if (!hasPcr) {
+  if (!hasCoverage) {
     scoreCard.classList.add('full-width');
     grid.append(scoreCard);
     return grid;
@@ -100,7 +100,7 @@ function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
       `${fmtPct(metrics.surfaceCovered)} of ${metrics.procCount} procedures  ·  ` +
       `${fmtDelta(deltas.surfacePct)} pts in 90 days`)
   );
-  const surfaceSpark = sparkline(trend.map(p => p.surfacePct), 'var(--covered)');
+  const surfaceSpark = sparkline(trend.map(p => p.surfacePct), 'var(--brand)');
   if (surfaceSpark) {
     const wrap = el('div', { class: 'sparkline' });
     wrap.append(surfaceSpark);
@@ -111,8 +111,8 @@ function renderHeroMetrics(metrics, trend, deltas, hasPcr) {
   return grid;
 }
 
-function renderStatStrip(metrics, hasPcr) {
-  if (!hasPcr) {
+function renderStatStrip(metrics, hasCoverage) {
+  if (!hasCoverage) {
     return el('div', { class: 'stat-strip two-col' },
       el('div', { class: 'stat' },
         el('div', { class: 'stat-label' }, 'TRRs'),
@@ -218,8 +218,8 @@ function renderOrphanBanner(orphans, detached) {
     return el('div', { class: 'orphan-banner is-clean' },
       el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-check', 'aria-hidden': 'true' })),
       el('div', { class: 'orphan-body' },
-        el('div', { class: 'orphan-title' }, 'No orphaned or detached PCRs'),
-        el('div', { class: 'orphan-detail' }, 'Every PCR references a known procedure. The data is clean.'))
+        el('div', { class: 'orphan-title' }, 'No orphaned or detached records'),
+        el('div', { class: 'orphan-detail' }, 'Every record references a known procedure. The data is clean.'))
     );
   }
 
@@ -230,21 +230,21 @@ function renderOrphanBanner(orphans, detached) {
       el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-alert-triangle', 'aria-hidden': 'true' })),
       el('div', { class: 'orphan-body' },
         el('div', { class: 'orphan-title' },
-          `${oCount} orphaned ${oCount === 1 ? 'PCR' : 'PCRs'}` +
+          `${oCount} orphaned ${oCount === 1 ? 'record' : 'records'}` +
           (dCount ? ` · ${dCount} detached` : '')),
         el('div', { class: 'orphan-detail' }, detail)),
       el('a', { class: 'orphan-review-btn', href: 'records.html?type=orphaned' }, 'Review →')
     );
   }
 
-  // Only detached PCRs — they're valid but worth surfacing.
+  // Only detached coverage records — they're valid but worth surfacing.
   return el('div', { class: 'orphan-banner is-detached' },
     el('div', { class: 'orphan-icon' }, el('i', { class: 'ti ti-link-off', 'aria-hidden': 'true' })),
     el('div', { class: 'orphan-body' },
       el('div', { class: 'orphan-title' },
-        `${dCount} detached ${dCount === 1 ? 'PCR' : 'PCRs'}`),
+        `${dCount} detached ${dCount === 1 ? 'record' : 'records'}`),
       el('div', { class: 'orphan-detail' },
-        'PCRs without procedure references. They count toward awareness but not coverage.')),
+        'Records without procedure references. They count toward awareness but not coverage.')),
     el('a', { class: 'orphan-review-btn', href: 'records.html?type=detached' }, 'Review →')
   );
 }
@@ -310,10 +310,10 @@ export async function renderDashboard(container) {
     }
   }
 
-  container.append(renderHeroMetrics(metrics, trend, deltas, model.hasPcrSource));
-  container.append(renderStatStrip(metrics, model.hasPcrSource));
+  container.append(renderHeroMetrics(metrics, trend, deltas, model.hasCoverageSource));
+  container.append(renderStatStrip(metrics, model.hasCoverageSource));
 
-  if (model.hasPcrSource) {
+  if (model.hasCoverageSource) {
     container.append(el('div', { class: 'charts-grid' },
       renderBarChart('Coverage by tactic', tactics, true),
       renderBarChart('Coverage by platform', platforms, false),
@@ -329,8 +329,8 @@ export async function renderDashboard(container) {
   // Latest Additions card — shown in both full and library-only modes.
   container.append(renderLatestAdditions(latest));
 
-  // Orphan / detached PCR banner — only when we have PCR data
-  if (model.hasPcrSource) {
-    container.append(renderOrphanBanner(model.orphanedPcrs, model.detachedPcrs));
+  // Orphan / detached record banner — only when we have coverage data
+  if (model.hasCoverageSource) {
+    container.append(renderOrphanBanner(model.orphanedRecords, model.detachedRecords));
   }
 }

@@ -35,36 +35,65 @@ function initTheme() {
   }
 }
 
-function initLastSyncedClock() {
+// Summarize the configured sources by type. The element previously showed
+// minutes since page load, which measured nothing about the data.
+async function initSourceSummary() {
   const t = document.getElementById('header-last-sync');
   if (!t) return;
-  const start = Date.now();
-  const tick = () => {
-    const mins = Math.floor((Date.now() - start) / 60000);
-    t.textContent = mins === 0 ? 'sources synced just now'
-                                : `sources synced ${mins}m ago`;
+
+  const ORDER = ['library', 'coverage', 'validation', 'emulation'];
+  const LABELS = {
+    library:    ['library', 'libraries'],
+    coverage:   ['coverage', 'coverage'],
+    validation: ['validation', 'validation'],
+    emulation:  ['emulation', 'emulation'],
   };
-  tick();
-  setInterval(tick, 30000);
+
+  try {
+    const r = await fetch('local/config.json', { cache: 'no-cache' });
+    const config = await r.json();
+    const sources = (config && config.sources) || [];
+
+    const counts = {};
+    for (const src of sources) {
+      const type = String(src.Type || '').toLowerCase();
+      if (ORDER.includes(type)) counts[type] = (counts[type] || 0) + 1;
+    }
+
+    const parts = ORDER
+      .filter(type => counts[type])
+      .map(type => {
+        const n = counts[type];
+        const [one, many] = LABELS[type];
+        return `${n} ${n === 1 ? one : many}`;
+      });
+
+    t.textContent = parts.length ? parts.join(' · ') : 'no sources configured';
+  } catch (_) {
+    t.textContent = 'sources unavailable';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  initLastSyncedClock();
+  initSourceSummary();
   injectContributeButton();
   initLibraryOnlyMode();
 });
 
-// Tag <body> with `library-only` when no PCR source is configured, so CSS
+// Tag <body> with `library-only` when no coverage source is configured, so CSS
 // can hide nav items that don't make sense (Records). Runs on every page;
 // the dashboard's own logic also reads the config but is allowed to render
 // either way.
 async function initLibraryOnlyMode() {
   try {
-    const r = await fetch('sources.json', { cache: 'no-cache' });
-    const sources = await r.json();
-    const hasPcr = Array.isArray(sources) && sources.some(s => s && s.Type === 'PCR');
-    if (!hasPcr) document.body.classList.add('library-only');
+    const r = await fetch('local/config.json', { cache: 'no-cache' });
+    const config = await r.json();
+    const sources = (config && config.sources) || [];
+    const hasCoverage = sources.some(
+      s => s && String(s.Type).toLowerCase() === 'coverage'
+    );
+    if (!hasCoverage) document.body.classList.add('library-only');
   } catch (_) { /* ignore — pages render their own load errors */ }
 }
 

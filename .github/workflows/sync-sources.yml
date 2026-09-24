@@ -1,0 +1,63 @@
+name: Sync source data
+run-name: Pulling index data from configured sources
+
+# Scheduled pull. Every source listed in local/config.json is fetched into
+# data/, so one place describes what this deployment reads. The push workflow
+# is the low-latency complement; a pull afterwards is simply a no-op.
+on:
+  schedule:
+    # Mondays at 05:00 UTC. Push-on-merge handles freshness; this is the
+    # safety net that catches a source whose push failed or was never wired up.
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-source-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    # A GitHub App is used rather than the workflow token because sources are
+    # in other repositories, and private ones at that. Install the App on each
+    # source with Contents: read, and on this repository with Contents: write.
+    - name: Generate GitHub App Token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.GH_APP_ID }}
+        private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+
+    - name: Check out repo
+      uses: actions/checkout@v7
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.11'
+
+    - name: Pull each configured source
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: python3 tools/sync_sources.py
+
+    # Committing only on change keeps the history to the days data actually
+    # moved, rather than one commit per scheduled run.
+    - name: Commit updated data
+      run: |
+        if [ -z "$(git status --porcelain data/)" ]; then
+          echo "No source data changed."
+          exit 0
+        fi
+        git config --local user.email "Insomnia-Bot@users.noreply.github.com"
+        git config --local user.name "Insomnia-Bot"
+        git add data/
+        git commit -m "chore(data): sync sources [skip ci]"
+        git push

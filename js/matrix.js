@@ -10,8 +10,8 @@ import { loadInsomniaData, STATE, trrUrl } from './data.js';
 import { el, trrCoveragePct } from './utils.js';
 
 // Overall coverage state for a TRR by aggregating its procedure states.
-function trrOverallState(trr, hasPcr) {
-  if (!hasPcr) return 'unknown';
+function trrOverallState(trr, hasCoverage) {
+  if (!hasCoverage) return 'unknown';
   if (!trr.procedures.length) return STATE.OPPORTUNITY;
   let covered = 0, partial = 0, gap = 0, opportunity = 0;
   for (const p of trr.procedures) {
@@ -70,8 +70,8 @@ function buildMatrix(model, platformFilter) {
   const columns = tactics.map(tactic => {
     const colTrrs = trrs.filter(t => t.tactics.includes(tactic));
     colTrrs.sort((a, b) => {
-      const sa = trrOverallState(a, model.hasPcrSource);
-      const sb = trrOverallState(b, model.hasPcrSource);
+      const sa = trrOverallState(a, model.hasCoverageSource);
+      const sb = trrOverallState(b, model.hasCoverageSource);
       if (order[sa] !== order[sb]) return order[sa] - order[sb];
       return a.id.localeCompare(b.id);
     });
@@ -82,13 +82,13 @@ function buildMatrix(model, platformFilter) {
 }
 
 function renderCell(trr, model) {
-  const state = trrOverallState(trr, model.hasPcrSource);
+  const state = trrOverallState(trr, model.hasCoverageSource);
   const pct = trrCoveragePct(trr);
   const href = trrUrl(trr, model);
 
-  const tooltip = model.hasPcrSource
-    ? `${trr.id} · ${trr.name}\n${trr.procedures.length} procedures · ${Math.round(pct)}% covered`
-    : `${trr.id} · ${trr.name}\n${trr.procedures.length} procedures`;
+  const tooltip = model.hasCoverageSource
+    ? `${trr.id} · ${trr.title}\n${trr.procedures.length} procedures · ${Math.round(pct)}% covered`
+    : `${trr.id} · ${trr.title}\n${trr.procedures.length} procedures`;
 
   const cell = el(href ? 'a' : 'div', {
     class: `matrix-cell state-${state}`,
@@ -96,14 +96,14 @@ function renderCell(trr, model) {
     title: tooltip,
   },
     el('div', { class: 'matrix-cell-id mono' }, trr.id),
-    el('div', { class: 'matrix-cell-name' }, trr.name),
-    model.hasPcrSource ? el('div', { class: 'matrix-cell-pct mono' }, Math.round(pct) + '%') : null,
+    el('div', { class: 'matrix-cell-name' }, trr.title),
+    model.hasCoverageSource ? el('div', { class: 'matrix-cell-pct mono' }, Math.round(pct) + '%') : null,
   );
   return cell;
 }
 
-function renderLegend(hasPcr) {
-  if (!hasPcr) return null;
+function renderLegend(hasCoverage) {
+  if (!hasCoverage) return null;
   return el('div', { class: 'legend' },
     el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw covered' }), 'covered'),
     el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw partial' }), 'partial'),
@@ -133,7 +133,7 @@ export async function renderMatrixView(container) {
 
   // Build the platform options from the union of TRR-source platforms.
   // Fall back to platforms actually seen on TRRs if the map is empty (e.g.
-  // platforms.json missing).
+  // platform short code unavailable).
   const platformNames = model.trrPlatformNames && model.trrPlatformNames.size > 0
     ? Array.from(model.trrPlatformNames).sort()
     : Array.from(new Set(
@@ -150,13 +150,13 @@ export async function renderMatrixView(container) {
 
   // Header strip: filter on the left, legend + summary on the right.
   const summaryText = el('span');
-  const orderingNote = model.hasPcrSource
+  const orderingNote = model.hasCoverageSource
     ? el('span', { style: 'color: var(--text-dim);' }, ' · ordered with what-needs-work first')
     : null;
   const header = el('div', { class: 'matrix-header' },
     el('div', { class: 'matrix-controls' }, platformSel),
     el('div', { class: 'matrix-summary' }, summaryText, orderingNote),
-    renderLegend(model.hasPcrSource),
+    renderLegend(model.hasCoverageSource),
   );
   container.append(header);
 

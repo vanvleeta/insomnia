@@ -1,0 +1,96 @@
+name: Push index to Insomnia
+
+# Reusable workflow. A source repository calls this on merge so its index
+# reaches Insomnia within seconds, instead of waiting for the scheduled pull.
+#
+# In the calling repository:
+#
+#   jobs:
+#     publish:
+#       uses: tired-labs/insomnia/.github/workflows/push-to-insomnia.yml@main
+#       with:
+#         source-name: "ACME Coverage"
+#         insomnia-repo: "acme/insomnia"
+#       secrets:
+#         app-id: ${{ secrets.GH_APP_ID }}
+#         private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+#
+# The App must be installed on the calling repository with Contents: read and
+# on Insomnia with Contents: write. source-name must match the Name in
+# Insomnia's local/config.json, because that is what determines the directory.
+on:
+  workflow_call:
+    inputs:
+      source-name:
+        description: 'Source Name, exactly as it appears in Insomnia config'
+        required: true
+        type: string
+      insomnia-repo:
+        description: 'owner/repo of the Insomnia deployment'
+        required: true
+        type: string
+      index-path:
+        description: 'Path to the index file in this repository'
+        required: false
+        default: 'index.json'
+        type: string
+    secrets:
+      app-id:
+        required: true
+      private-key:
+        required: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the source repository
+      uses: actions/checkout@v7
+
+    - name: Generate a token for Insomnia
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.app-id }}
+        private-key: ${{ secrets.private-key }}
+        owner: ${{ github.repository_owner }}
+        # Scope the token to just the Insomnia repository.
+        repositories: ${{ inputs.insomnia-repo }}
+
+    - name: Check out Insomnia
+      uses: actions/checkout@v7
+      with:
+        repository: ${{ inputs.insomnia-repo }}
+        token: ${{ steps.app-token.outputs.token }}
+        path: .insomnia
+
+    - name: Copy the index into Insomnia's data directory
+      run: |
+        # The directory name is derived from the source Name the same way
+        # tools/sync_sources.py derives it, so a pull and a push write to the
+        # same place rather than creating two copies.
+        slug=$(echo "${{ inputs.source-name }}" \
+          | tr '[:upper:]' '[:lower:]' \
+          | sed -e 's/[^a-z0-9]\+/-/g' -e 's/^-//' -e 's/-$//')
+        echo "Target directory: data/${slug}"
+
+        if ! python3 -c "import json,sys; json.load(open('${{ inputs.index-path }}'))"; then
+          echo "::error::${{ inputs.index-path }} is not valid JSON; refusing to push."
+          exit 1
+        fi
+
+        mkdir -p ".insomnia/data/${slug}"
+        cp "${{ inputs.index-path }}" ".insomnia/data/${slug}/index.json"
+
+    - name: Commit and push
+      working-directory: .insomnia
+      run: |
+        if [ -z "$(git status --porcelain data/)" ]; then
+          echo "Index unchanged; nothing to push."
+          exit 0
+        fi
+        git config --local user.email "Insomnia-Bot@users.noreply.github.com"
+        git config --local user.name "Insomnia-Bot"
+        git add data/
+        git commit -m "chore(data): ${{ inputs.source-name }} [skip ci]"
+        git push

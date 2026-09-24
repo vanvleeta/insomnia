@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "excludePlatforms": [],
+  "sources": [
+    {
+      "Name": "TIRED Labs",
+      "Type": "library",
+      "Repo": "https://github.com/tired-labs/techniques"
+    }
+  ]
+}

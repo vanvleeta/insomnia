@@ -3,7 +3,7 @@
    and historical trend reconstruction from pub_dates.
    ============================================================ */
 
-import { STATE, isCoveredType, PCR_TYPE } from './data.js';
+import { STATE, isCoveredType, RECORD_TYPE } from './data.js';
 
 // --- Live (current-state) metrics ------------------------------------
 
@@ -28,25 +28,25 @@ export function computeMetrics(model) {
     }
   }
 
-  // Count active (non-retired) PCRs. Each contributes 1 to the awareness
+  // Count active (non-retired) coverage records. Each contributes 1 to the awareness
   // score — even detached ones, since they still represent observed
   // environmental knowledge.
-  let activePcrCount = 0;
-  for (const pcr of model.pcrs.values()) {
-    if (pcr.status !== 'Retired') activePcrCount++;
+  let activeRecordCount = 0;
+  for (const record of model.records.values()) {
+    if (record.status !== 'Retired') activeRecordCount++;
   }
 
-  // Score: 2 per TRR + 1 per active (non-retired) PCR.
+  // Score: 2 per TRR + 1 per active (non-retired) record.
   // The coverage percentage tells the procedure-fraction story; the
   // awareness score is just about volume of research and observations.
-  score = (2 * trrCount) + activePcrCount;
+  score = (2 * trrCount) + activeRecordCount;
 
   const surfacePct = procCount > 0 ? (surfaceCovered / procCount) * 100 : 0;
 
   return {
     trrCount,
     procCount,
-    pcrCountActive: activePcrCount,
+    recordCountActive: activeRecordCount,
     coveredCount,
     partialCount,
     gapCount,
@@ -54,8 +54,8 @@ export function computeMetrics(model) {
     score,                 // open-ended, no denominator
     surfacePct,            // 0..100
     surfaceCovered,        // numerator value (e.g. 24.5)
-    pcrCount: model.pcrs.size,
-    orphanCount: model.orphanedPcrs.length,
+    recordCount: model.records.size,
+    orphanCount: model.orphanedRecords.length,
   };
 }
 
@@ -66,7 +66,7 @@ function tallyByGroup(model, groupFn) {
   // group -> { covered, partial, gap, opportunity, total, fractionSum }
   const groups = new Map();
   for (const proc of model.procedures.values()) {
-    const trr = model.trrs.get(proc.trrId);
+    const trr = model.trrs.get(proc.trrKey);
     if (!trr) continue;
     const keys = groupFn(trr, proc);
     for (const key of keys) {
@@ -127,7 +127,7 @@ export function topGaps(model, limit = 6) {
   return [...gaps, ...partials].slice(0, limit).map(p => decorateProc(p, model));
 }
 
-// Just the opportunities (procedures with no PCR records of any kind yet).
+// Just the opportunities (procedures with no coverage records of any kind yet).
 export function topOpportunities(model, limit = 6) {
   const all = Array.from(model.procedures.values());
   const opps = all.filter(p => p.state === STATE.OPPORTUNITY);
@@ -137,19 +137,19 @@ export function topOpportunities(model, limit = 6) {
 }
 
 function decorateProc(p, model) {
-  const trr = model.trrs.get(p.trrId);
+  const trr = model.trrs.get(p.trrKey);
   return {
     proc: p,
     trr,
-    label: trr ? `${trr.name} · ${p.name}` : p.name,
+    label: trr ? `${trr.title} · ${p.name}` : p.name,
     status: p.state,
   };
 }
 
 // --- Latest additions -------------------------------------------------
 
-// Return TRRs and PCRs added within the last `days` days, interleaved by
-// publication date (newest first). PCRs without pub_date are skipped.
+// Return TRRs and coverage records added within the last `days` days, interleaved by
+// publication date (newest first). coverage records without pub_date are skipped.
 export function latestAdditions(model, days = 30, limit = 20) {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
@@ -159,13 +159,13 @@ export function latestAdditions(model, days = 30, limit = 20) {
   for (const trr of model.trrs.values()) {
     const d = trr.pubDate;
     if (d && d >= cutoffStr) {
-      items.push({ kind: 'TRR', id: trr.id, title: trr.name, date: d, trr });
+      items.push({ kind: 'TRR', id: trr.id, title: trr.title, date: d, trr });
     }
   }
-  for (const pcr of model.pcrs.values()) {
-    const d = pcr.pubDate;
+  for (const record of model.records.values()) {
+    const d = record.pubDate;
     if (d && d >= cutoffStr) {
-      items.push({ kind: 'PCR', id: pcr.id, title: pcr.title || '(untitled)', date: d, pcr });
+      items.push({ kind: 'record', id: record.id, title: record.title || '(untitled)', date: d, record });
     }
   }
   items.sort((a, b) => b.date.localeCompare(a.date));
@@ -176,8 +176,8 @@ export function latestAdditions(model, days = 30, limit = 20) {
 
 // Build a time series of (date, score, surfacePct). At each date,
 // we replay the world *as it was* on that date: only TRRs published
-// on or before that date exist; only PCRs published on or before
-// that date count toward coverage. PCRs missing pub_date are
+// on or before that date exist; only coverage records published on or before
+// that date count toward coverage. coverage records missing pub_date are
 // treated as "always existed" so they count from the earliest date.
 
 export function buildTrend(model) {
@@ -186,21 +186,21 @@ export function buildTrend(model) {
   for (const trr of model.trrs.values()) {
     if (trr.pubDate) datesSet.add(trr.pubDate);
   }
-  for (const pcr of model.pcrs.values()) {
-    if (pcr.pubDate) datesSet.add(pcr.pubDate);
+  for (const record of model.records.values()) {
+    if (record.pubDate) datesSet.add(record.pubDate);
   }
   const dates = Array.from(datesSet).sort();
   if (dates.length === 0) return [];
 
-  // Pre-index PCRs by procedure (regardless of date for now)
+  // Pre-index coverage records by procedure (regardless of date for now)
   // We'll filter inside the loop. Pre-classify type so we don't repeat work.
-  const pcrsForProc = new Map();
-  for (const pcr of model.pcrs.values()) {
-    if (pcr.status === 'Retired') continue;
-    for (const procId of pcr.procedures) {
+  const recordsForProc = new Map();
+  for (const record of model.records.values()) {
+    if (record.status === 'Retired') continue;
+    for (const procId of record.procedures) {
       if (!model.procedures.has(procId)) continue;
-      if (!pcrsForProc.has(procId)) pcrsForProc.set(procId, []);
-      pcrsForProc.get(procId).push(pcr);
+      if (!recordsForProc.has(procId)) recordsForProc.set(procId, []);
+      recordsForProc.get(procId).push(record);
     }
   }
 
@@ -220,30 +220,30 @@ export function buildTrend(model) {
     procCount = procsInScope.length;
 
     for (const p of procsInScope) {
-      const pcrs = (pcrsForProc.get(p.id) || []).filter(pcr => {
+      const records = (recordsForProc.get(p.id) || []).filter(record => {
         // No pub_date: treat as always-existing
-        if (!pcr.pubDate) return true;
-        return pcr.pubDate <= date;
+        if (!record.pubDate) return true;
+        return record.pubDate <= date;
       });
       let cov = 0, gap = 0;
-      for (const pcr of pcrs) {
-        if (pcr.type === PCR_TYPE.GAP) gap++;
-        else if (isCoveredType(pcr.type)) cov++;
+      for (const record of records) {
+        if (record.type === RECORD_TYPE.GAP) gap++;
+        else if (isCoveredType(record.type)) cov++;
       }
       if (cov + gap > 0) surfaceSum += cov / (cov + gap);
     }
 
-    // Count active PCRs in scope as of `date`. Includes detached PCRs.
-    let pcrCountInScope = 0;
-    for (const pcr of model.pcrs.values()) {
-      if (pcr.status === 'Retired') continue;
-      if (pcr.pubDate && pcr.pubDate > date) continue;
-      pcrCountInScope++;
+    // Count active coverage records in scope as of `date`. Includes detached coverage records.
+    let recordCountInScope = 0;
+    for (const record of model.records.values()) {
+      if (record.status === 'Retired') continue;
+      if (record.pubDate && record.pubDate > date) continue;
+      recordCountInScope++;
     }
 
-    const score = (2 * trrCount) + pcrCountInScope;
+    const score = (2 * trrCount) + recordCountInScope;
     const surfacePct = procCount > 0 ? (surfaceSum / procCount) * 100 : 0;
-    series.push({ date, score, surfacePct, trrCount, procCount, pcrCountInScope });
+    series.push({ date, score, surfacePct, trrCount, procCount, recordCountInScope });
   }
   return series;
 }

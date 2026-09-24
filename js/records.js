@@ -1,62 +1,62 @@
 /* ============================================================
-   records.js — Renders the PCR browse view ("Records").
+   records.js — Renders the coverage record browse view ("Records").
    Mirrors the structure of techniques.js but for Procedure
    Coverage Records.
 
    URL params:
-     ?procedure=TRR0030.WIN.A   filter to PCRs that reference this procedure
+     ?procedure=TRR0030.WIN.A   filter to coverage records that reference this procedure
      ?type=gap|coverage|detection|detached
    ============================================================ */
 
-import { loadInsomniaData, PCR_TYPE, pcrUrl } from './data.js';
+import { loadInsomniaData, RECORD_TYPE, recordUrl } from './data.js';
 import { el, uniqueSorted } from './utils.js';
 
 const TYPE_DISPLAY = {
-  [PCR_TYPE.GAP]:       'gap',
-  [PCR_TYPE.COVERAGE]:  'coverage',
-  [PCR_TYPE.DETECTION]: 'detection',
+  [RECORD_TYPE.GAP]:       'gap',
+  [RECORD_TYPE.COVERAGE]:  'coverage',
+  [RECORD_TYPE.DETECTION]: 'detection',
 };
 
 function typeTagClass(t) {
-  if (t === PCR_TYPE.GAP) return 'gap';
-  if (t === PCR_TYPE.COVERAGE) return 'covered';
-  if (t === PCR_TYPE.DETECTION) return 'covered';
+  if (t === RECORD_TYPE.GAP) return 'gap';
+  if (t === RECORD_TYPE.COVERAGE) return 'covered';
+  if (t === RECORD_TYPE.DETECTION) return 'covered';
   return 'opportunity';
 }
 
-function renderPcrCard(pcr, model, href) {
-  const card = el('div', { class: 'pcr-card' });
+function renderRecordCard(record, model, href) {
+  const card = el('div', { class: 'record-card' });
 
   const titleNode = href
-    ? el('a', { class: 'card-title-link', href, target: '_blank', rel: 'noopener' }, pcr.title || '(untitled)')
-    : (pcr.title || '(untitled)');
+    ? el('a', { class: 'card-title-link', href, target: '_blank', rel: 'noopener' }, record.title || '(untitled)')
+    : (record.title || '(untitled)');
 
   const idLink = href
-    ? el('a', { href, target: '_blank', rel: 'noopener' }, pcr.id)
-    : pcr.id;
+    ? el('a', { href, target: '_blank', rel: 'noopener' }, record.id)
+    : record.id;
   const ids = el('div', { class: 'card-ids mono' }, idLink);
-  for (const tech of pcr.techniques.slice(0, 3)) {
+  for (const tech of record.techniques.slice(0, 3)) {
     ids.append(document.createTextNode(' · '), tech);
   }
-  if (pcr.techniques.length > 3) {
+  if (record.techniques.length > 3) {
     ids.append(document.createTextNode(' · '));
     ids.append(el('span', {
       class: 'more-ids',
-      title: pcr.techniques.join(', ')
-    }, `+${pcr.techniques.length - 3}`));
+      title: record.techniques.join(', ')
+    }, `+${record.techniques.length - 3}`));
   }
 
-  const isDetached = !pcr.procedures || pcr.procedures.length === 0;
+  const isDetached = !record.procedures || record.procedures.length === 0;
 
   // Card head: title + IDs (left) and type/status (right)
   const headRight = el('div', { class: 'card-head-right' });
-  if (pcr.type) {
+  if (record.type) {
     headRight.append(el('span', {
-      class: `status-tag ${typeTagClass(pcr.type)}`,
-      title: pcr.rawType
-    }, TYPE_DISPLAY[pcr.type] || pcr.type));
+      class: `status-tag ${typeTagClass(record.type)}`,
+      title: record.rawType
+    }, TYPE_DISPLAY[record.type] || record.type));
   }
-  if (pcr.status === 'Retired') {
+  if (record.status === 'Retired') {
     headRight.append(el('span', { class: 'status-tag retired' }, 'retired'));
   }
 
@@ -70,43 +70,54 @@ function renderPcrCard(pcr, model, href) {
 
   // Tags row: source, platforms, tactics, detached marker
   const tags = el('div', { class: 'item-tags' });
-  tags.append(el('span', { class: 'tag source', title: 'Source repo' }, pcr.sourceName));
+  tags.append(el('span', { class: 'tag source', title: 'Source repo' }, record.sourceName));
+  if (record.provider) {
+    tags.append(el('span',
+      { class: 'tag provider', title: 'Coverage provider' }, record.provider));
+  }
   if (isDetached) {
     tags.append(el('span', { class: 'tag detached', title: 'No procedure references' }, 'detached'));
   }
-  for (const plat of pcr.platforms) {
+  for (const plat of record.platforms) {
     tags.append(el('span', { class: 'tag platform' }, plat));
   }
-  for (const tac of pcr.tactics) {
+  for (const tac of record.tactics) {
     tags.append(el('span', { class: 'tag' }, tac));
   }
   card.append(tags);
 
   // Referenced procedures (link back to techniques)
-  if (!isDetached && pcr.procedures.length > 0) {
-    const list = el('div', { class: 'pcr-proc-list' });
-    for (const procId of pcr.procedures) {
+  if (!isDetached && record.procedures.length > 0) {
+    const list = el('div', { class: 'record-proc-list' });
+    for (const procId of record.procedures) {
       const proc = model.procedures.get(procId);
-      const trr = proc ? model.trrs.get(proc.trrId) : null;
-      const label = proc && trr ? `${proc.name} · ${trr.name}` : '(unknown procedure)';
+      const trr = proc ? model.trrs.get(proc.trrKey) : null;
+      const fullLabel = proc && trr
+        ? `${proc.name} · ${trr.title}`
+        : '(unknown procedure)';
+      const label = proc ? proc.name : '(unknown procedure)';
       if (proc) {
+        // Stay in this view and filter to the procedure, matching how the
+        // techniques view navigates. Linking to techniques.html with a
+        // procedure ID never matched anything, because that view searches
+        // reports by report ID.
         list.append(el('a', {
-          class: 'pcr-proc-ref',
-          href: `techniques.html?q=${encodeURIComponent(procId)}`,
-          title: label,
+          class: 'record-proc-ref',
+          href: `records.html?procedure=${encodeURIComponent(procId)}`,
+          title: fullLabel,
         },
-          el('span', { class: 'mono pcr-proc-id' }, procId),
-          el('span', { class: 'pcr-proc-name' }, label),
+          el('span', { class: 'mono record-proc-id' }, procId),
+          el('span', { class: 'record-proc-name' }, label),
         ));
       } else {
         // Unknown procedure — render as a non-clickable row, since a search
         // for the ID would return zero results anyway.
         list.append(el('div', {
-          class: 'pcr-proc-ref unknown',
+          class: 'record-proc-ref unknown',
           title: 'This procedure is not present in any configured TRR source.',
         },
-          el('span', { class: 'mono pcr-proc-id' }, procId),
-          el('span', { class: 'pcr-proc-name' }, label),
+          el('span', { class: 'mono record-proc-id' }, procId),
+          el('span', { class: 'record-proc-name' }, label),
         ));
       }
     }
@@ -114,50 +125,51 @@ function renderPcrCard(pcr, model, href) {
   }
 
   // AVL detection metadata is intentionally omitted from card display to
-  // keep all PCR types visually consistent — the Records view focuses on
+  // keep all record types visually consistent — the Records view focuses on
   // which procedures each record addresses, not the rule internals.
 
   return card;
 }
 
-function matchesFilters(pcr, filters, model) {
-  if (filters.platform !== 'all' && !pcr.platforms.includes(filters.platform)) return false;
-  if (filters.tactic   !== 'all' && !pcr.tactics.includes(filters.tactic))     return false;
+function matchesFilters(record, filters, model) {
+  if (filters.platform !== 'all' && !record.platforms.includes(filters.platform)) return false;
+  if (filters.provider !== 'all' && record.provider !== filters.provider)         return false;
+  if (filters.tactic   !== 'all' && !record.tactics.includes(filters.tactic))     return false;
   if (filters.type     !== 'all') {
     if (filters.type === 'detached') {
-      // Detached = PCR explicitly lists no procedures.
-      if (pcr.procedures && pcr.procedures.length > 0) return false;
+      // Detached = record explicitly lists no procedures.
+      if (record.procedures && record.procedures.length > 0) return false;
     } else if (filters.type === 'orphaned') {
-      // Orphaned = PCR references procedure IDs, but none of them resolve.
-      if (!pcr.procedures || pcr.procedures.length === 0) return false;
-      const anyKnown = pcr.procedures.some(id => model.procedures.has(id));
+      // Orphaned = record references procedure IDs, but none of them resolve.
+      if (!record.procedures || record.procedures.length === 0) return false;
+      const anyKnown = record.procedures.some(id => model.procedures.has(id));
       if (anyKnown) return false;
-    } else if (pcr.type !== filters.type) {
+    } else if (record.type !== filters.type) {
       return false;
     }
   }
-  if (filters.status !== 'all' && pcr.status !== filters.status) return false;
+  if (filters.status !== 'all' && record.status !== filters.status) return false;
   if (filters.created !== 'all') {
     const days = parseInt(filters.created, 10);
     if (!isNaN(days)) {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString().slice(0, 10);
-      const d = pcr.pubDate || '';
+      const d = record.pubDate || '';
       if (!d || d < cutoffStr) return false;
     }
   }
   if (filters.procedure && filters.procedure !== 'all') {
-    if (!pcr.procedures.includes(filters.procedure)) return false;
+    if (!record.procedures.includes(filters.procedure)) return false;
   }
   if (filters.search) {
     const q = filters.search.toLowerCase();
     const hay = [
-      pcr.id, pcr.title || '',
-      ...(pcr.techniques || []),
-      ...(pcr.tactics || []),
-      ...(pcr.platforms || []),
-      ...(pcr.procedures || []),
+      record.id, record.title || '',
+      ...(record.techniques || []),
+      ...(record.tactics || []),
+      ...(record.platforms || []),
+      ...(record.procedures || []),
     ].join(' ').toLowerCase();
     if (!hay.includes(q)) return false;
   }
@@ -181,14 +193,14 @@ export async function renderRecordsView(container) {
 
   container.innerHTML = '';
 
-  // No PCR source configured: explain rather than render an empty list.
-  if (!model.hasPcrSource) {
+  // No coverage source configured: explain rather than render an empty list.
+  if (!model.hasCoverageSource) {
     container.append(el('div', { class: 'library-only-hint' },
       el('div', { class: 'hint-title' }, 'No coverage records'),
       el('div', { class: 'hint-body' },
-        'Records (PCRs) are only available when a PCR source is configured. ',
-        'Add a ', el('code', null, '{"Type":"PCR",…}'), ' entry to ',
-        el('code', null, 'sources.json'), ' to enable this view.')
+        'Coverage records are only available when a coverage source is configured. ',
+        'Add a ', el('code', null, '{"Type":"coverage",…}'), ' entry to ',
+        el('code', null, 'local/config.json'), ' to enable this view.')
     ));
     return;
   }
@@ -198,11 +210,12 @@ export async function renderRecordsView(container) {
   const urlType = url.get('type') || 'all';
   // When arriving via the dashboard's orphan/detached banner, default to
   // showing all statuses so the count matches what the banner advertised.
-  // (Otherwise the default 'Active' filter would silently hide retired PCRs.)
+  // (Otherwise the default 'Active' filter would silently hide retired coverage records.)
   const defaultStatus = (urlType === 'orphaned' || urlType === 'detached') ? 'all' : 'Active';
   const filters = {
     search:    '',
     platform:  'all',
+    provider:  'all',
     tactic:    'all',
     type:      urlType,
     status:    defaultStatus,
@@ -211,11 +224,13 @@ export async function renderRecordsView(container) {
     sort:      'newest',
   };
 
-  // Source URL resolver — builds <BaseUrl>/<pcr_id_lowercase>/README.md
-  const pcrUrlFor = (pcr) => pcrUrl(pcr, model);
+  // Source URL resolver — builds <BaseUrl>/records/<id-lowercase>/README.md
+  const recordUrlFor = (record) => recordUrl(record, model);
 
-  const allPlatforms = uniqueSorted(Array.from(model.pcrs.values()).flatMap(p => p.platforms));
-  const allTactics   = uniqueSorted(Array.from(model.pcrs.values()).flatMap(p => p.tactics));
+  const allPlatforms = uniqueSorted(Array.from(model.records.values()).flatMap(p => p.platforms));
+  const allTactics   = uniqueSorted(Array.from(model.records.values()).flatMap(p => p.tactics));
+  const allProviders = uniqueSorted(
+    Array.from(model.records.values()).map(r => r.provider).filter(Boolean));
 
   const searchInput = el('input', {
     class: 'search-input',
@@ -229,6 +244,19 @@ export async function renderRecordsView(container) {
     ...allPlatforms.map(p => el('option', { value: p }, p)));
   platformSel.addEventListener('change', () => { filters.platform = platformSel.value; rerender(); });
 
+  // Only offered when the loaded records actually name providers; a
+  // library-only deployment has none.
+  const providerSel = allProviders.length
+    ? el('select', { class: 'filter-select' },
+        el('option', { value: 'all' }, 'All providers'),
+        ...allProviders.map(p => el('option', { value: p }, p)))
+    : null;
+  if (providerSel) {
+    providerSel.addEventListener('change', () => {
+      filters.provider = providerSel.value; rerender();
+    });
+  }
+
   const tacticSel = el('select', { class: 'filter-select' },
     el('option', { value: 'all' }, 'All tactics'),
     ...allTactics.map(t => el('option', { value: t }, t)));
@@ -236,9 +264,8 @@ export async function renderRecordsView(container) {
 
   const typeSel = el('select', { class: 'filter-select' },
     el('option', { value: 'all' }, 'Any type'),
-    el('option', { value: PCR_TYPE.COVERAGE }, 'Coverage records'),
-    el('option', { value: PCR_TYPE.DETECTION }, 'Detection records'),
-    el('option', { value: PCR_TYPE.GAP }, 'Gap records'),
+    el('option', { value: RECORD_TYPE.COVERAGE }, 'Coverage records'),
+    el('option', { value: RECORD_TYPE.GAP }, 'Gap records'),
     el('option', { value: 'detached' }, 'Detached records'),
     el('option', { value: 'orphaned' }, 'Orphaned records'),
   );
@@ -263,14 +290,16 @@ export async function renderRecordsView(container) {
 
   const sortSel = el('select', { class: 'filter-select', title: 'Sort order' },
     el('option', { value: 'newest' }, 'Sort: most recently published'),
-    el('option', { value: 'id-asc' }, 'Sort: PCR ID ascending'),
-    el('option', { value: 'id-desc' }, 'Sort: PCR ID descending'),
+    el('option', { value: 'id-asc' }, 'Sort: Record ID ascending'),
+    el('option', { value: 'id-desc' }, 'Sort: Record ID descending'),
     el('option', { value: 'type' }, 'Sort: by type'),
   );
   sortSel.addEventListener('change', () => { filters.sort = sortSel.value; rerender(); });
 
   const controls = el('div', { class: 'browse-controls' },
-    searchInput, platformSel, tacticSel, typeSel, statusSel, createdSel, sortSel);
+    searchInput, platformSel,
+    ...(providerSel ? [providerSel] : []),
+    tacticSel, typeSel, statusSel, createdSel, sortSel);
   container.append(controls);
 
   // Active-filter banner. Shows the procedure filter (from URL) with a clear button.
@@ -288,8 +317,8 @@ export async function renderRecordsView(container) {
       filterBanner.style.display = '';
       filterBanner.innerHTML = '';
       const proc = model.procedures.get(filters.procedure);
-      const trr = proc ? model.trrs.get(proc.trrId) : null;
-      const label = proc && trr ? `${proc.name} (${trr.name})` : '(unknown)';
+      const trr = proc ? model.trrs.get(proc.trrKey) : null;
+      const label = proc && trr ? `${proc.name} (${trr.title})` : '(unknown)';
       filterBanner.append(
         el('span', null, 'Filtered to procedure '),
         el('span', { class: 'mono', style: 'color: var(--brand);' }, filters.procedure),
@@ -309,7 +338,7 @@ export async function renderRecordsView(container) {
   }
 
   function rerender() {
-    const matching = Array.from(model.pcrs.values())
+    const matching = Array.from(model.records.values())
       .filter(p => matchesFilters(p, filters, model))
       .sort((a, b) => {
         switch (filters.sort) {
@@ -328,11 +357,11 @@ export async function renderRecordsView(container) {
 
     const sortLabels = {
       newest:  'most recently published',
-      'id-asc':  'PCR ID ascending',
-      'id-desc': 'PCR ID descending',
+      'id-asc':  'record ID ascending',
+      'id-desc': 'record ID descending',
       type:    'by type',
     };
-    meta.textContent = `${matching.length} of ${model.pcrs.size} PCRs · sorted by ${sortLabels[filters.sort]}`;
+    meta.textContent = `${matching.length} of ${model.records.size} records · sorted by ${sortLabels[filters.sort]}`;
 
     grid.innerHTML = '';
     if (matching.length === 0) {
@@ -340,8 +369,8 @@ export async function renderRecordsView(container) {
         'No records match the current filters.'));
       return;
     }
-    for (const pcr of matching) {
-      grid.append(renderPcrCard(pcr, model, pcrUrlFor(pcr)));
+    for (const record of matching) {
+      grid.append(renderRecordCard(record, model, recordUrlFor(record)));
     }
   }
 

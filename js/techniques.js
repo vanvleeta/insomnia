@@ -21,7 +21,7 @@ function procCountsLabel(proc) {
   return parts.join(' · ');
 }
 
-function renderTrrCard(trr, model, sourceUrl, hasPcr) {
+function renderTrrCard(trr, model, sourceUrl, hasCoverage) {
   const pct = trrCoveragePct(trr);
   const pctCls = trrCoverageClass(pct);
 
@@ -29,8 +29,8 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
 
   // Title is a hyperlink to the source TRR page when a BaseUrl is configured.
   const titleNode = sourceUrl
-    ? el('a', { class: 'card-title-link', href: sourceUrl, target: '_blank', rel: 'noopener' }, trr.name)
-    : trr.name;
+    ? el('a', { class: 'card-title-link', href: sourceUrl, target: '_blank', rel: 'noopener' }, trr.title)
+    : trr.title;
 
   // IDs row: TRR ID + external IDs, truncated to one line.
   const idLink = sourceUrl
@@ -61,13 +61,13 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
     ids.append(el('span', { class: 'more-ids', title: fullList }, `+${hidden}`));
   }
 
-  // Card head — coverage % only when we have a PCR source
+  // Card head — coverage % only when we have a coverage source
   const headLeft = el('div', { class: 'card-head-left' },
     el('div', { class: 'card-title' }, titleNode),
     ids,
   );
   const headChildren = [headLeft];
-  if (hasPcr) {
+  if (hasCoverage) {
     headChildren.push(el('div', { class: `coverage-pct ${pctCls}` },
       Math.round(pct) + '%',
       el('span', { class: 'pct-label' }, 'COVERED')));
@@ -88,7 +88,7 @@ function renderTrrCard(trr, model, sourceUrl, hasPcr) {
   // Procedure list
   const list = el('div', { class: 'proc-list' });
   for (const proc of trr.procedures) {
-    if (hasPcr) {
+    if (hasCoverage) {
       list.append(el('a', {
         class: 'proc-row proc-row-link',
         href: `records.html?procedure=${encodeURIComponent(proc.id)}`,
@@ -135,7 +135,7 @@ function matchesFilters(trr, filters) {
   if (filters.search) {
     const q = filters.search.toLowerCase();
     const haystack = [
-      trr.id, trr.name,
+      trr.id, trr.title,
       ...trr.externalIds,
       ...trr.tactics, ...trr.platforms,
       ...trr.procedures.map(p => p.id + ' ' + p.name)
@@ -217,7 +217,7 @@ export async function renderTechniquesView(container, options = {}) {
   createdSel.addEventListener('change', () => { filters.created = createdSel.value; rerender(); });
 
   let covSel = null;
-  if (model.hasPcrSource) {
+  if (model.hasCoverageSource) {
     covSel = el('select', { class: 'filter-select' },
       el('option', { value: 'all' }, 'Any coverage'),
       el('option', { value: 'covered' }, 'Fully covered'),
@@ -228,8 +228,8 @@ export async function renderTechniquesView(container, options = {}) {
     covSel.addEventListener('change', () => { filters.coverage = covSel.value; rerender(); });
   }
 
-  // Build sort options. Coverage sorts only make sense when PCRs are loaded.
-  const sortOpts = model.hasPcrSource
+  // Build sort options. Coverage sorts only make sense when coverage records are loaded.
+  const sortOpts = model.hasCoverageSource
     ? [
         ['coverage-asc',  'Sort: lowest coverage first'],
         ['coverage-desc', 'Sort: highest coverage first'],
@@ -243,7 +243,7 @@ export async function renderTechniquesView(container, options = {}) {
         ['id-desc', 'Sort: TRR ID descending'],
       ];
   // Default sort flips to "newest" when there's no coverage data
-  if (!model.hasPcrSource) filters.sort = 'newest';
+  if (!model.hasCoverageSource) filters.sort = 'newest';
 
   const sortSel = el('select', { class: 'filter-select', title: 'Sort order' },
     ...sortOpts.map(([v, label]) => el('option', { value: v }, label))
@@ -305,7 +305,7 @@ export async function renderTechniquesView(container, options = {}) {
       return;
     }
     for (const trr of matching) {
-      grid.append(renderTrrCard(trr, model, sourceUrlFor(trr), model.hasPcrSource));
+      grid.append(renderTrrCard(trr, model, sourceUrlFor(trr), model.hasCoverageSource));
     }
   }
 
@@ -315,19 +315,19 @@ export async function renderTechniquesView(container, options = {}) {
 function renderOrphansView(model) {
   const wrap = el('div', { class: 'card' });
   wrap.append(el('div', { class: 'chart-header' },
-    el('div', { class: 'chart-title' }, `Orphaned PCRs (${model.orphanedPcrs.length})`)));
-  if (model.orphanedPcrs.length === 0) {
+    el('div', { class: 'chart-title' }, `Orphaned records (${model.orphanedRecords.length})`)));
+  if (model.orphanedRecords.length === 0) {
     wrap.append(el('div', { style: 'color: var(--text-dim); padding: 10px 0;' },
-      'No orphaned PCRs. Every PCR references a known procedure.'));
+      'No orphaned records. Every record references a known procedure.'));
     return wrap;
   }
-  for (const pcr of model.orphanedPcrs) {
+  for (const record of model.orphanedRecords) {
     wrap.append(el('div', { class: 'gap-item' },
       el('span', { class: 'desc' },
-        el('span', { class: 'id mono' }, pcr.id),
-        pcr.title || '(no title)'),
+        el('span', { class: 'id mono' }, record.id),
+        record.title || '(no title)'),
       el('span', { class: 'mono', style: 'color: var(--text-dim); font-size: 11px;' },
-        pcr.procedures.join(', '))));
+        record.procedures.join(', '))));
   }
   return wrap;
 }
