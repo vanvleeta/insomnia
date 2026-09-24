@@ -2,18 +2,18 @@
   "schema": 1,
   "excludePlatforms": [],
   "banner": {
-    "title": "TRR Library",
+    "title": "Welcome to the TRR Library!",
     "body": [
-      "A collection of technique research reports (TRR) documenting attack techniques for use in understanding, emulating, and detecting cyber attacks."
+      "This is a collection of technique research reports (TRRs) documenting attack techniques for use in understanding, emulating, and detecting cyber attacks. New to TRRs? See the links below."
     ],
     "links": [
       {
-        "text": "TRR Guide",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/TECHNIQUE-RESEARCH-REPORT.md"
-      },
-      {
         "text": "Project Overview",
         "href": "https://github.com/tired-labs/techniques/blob/main/docs/PROJECT-OVERVIEW.md"
+      },
+       {
+        "text": "TRR Guide",
+        "href": "https://github.com/tired-labs/techniques/blob/main/docs/TECHNIQUE-RESEARCH-REPORT.md"
       },
       {
         "text": "Contribute",
