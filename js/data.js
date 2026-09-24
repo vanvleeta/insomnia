@@ -248,12 +248,24 @@ function resolveSourceLocation(src) {
 
   const branch = src.Branch || 'main';
 
-  // Indexes are read from the synced copy under data/, never from the source
-  // repository directly. A browser cannot fetch a private repository at all,
-  // and a public one would be a second, differently-fresh copy of data the
-  // sync workflows already maintain. Repo is used only to build links out to
-  // the record itself, which the viewer opens with their own credentials.
-  src._rawBase = `data/${sourceSlug(src.Name)}/`;
+  // The Private flag decides where the index is read from, for the same
+  // reason it decides how the sync fetches it.
+  //
+  //   public   fetched straight from the raw URL. Always current, and a
+  //            library-only deployment needs no sync workflow at all.
+  //   private  read from the synced copy under data/. A browser cannot fetch
+  //            a private repository, and has nowhere safe to keep a token.
+  if (src.Private) {
+    src._rawBase = `data/${sourceSlug(src.Name)}/`;
+  } else {
+    const rawHost = parsed.host === 'github.com'
+      ? 'raw.githubusercontent.com'
+      : `${parsed.host}/raw`;          // GitHub Enterprise
+    src._rawBase = `https://${rawHost}/${parsed.owner}/${parsed.repo}/${branch}/`;
+  }
+
+  // Repo always builds links out to individual records, which the viewer
+  // opens with their own credentials.
   src._linkBase = `https://${parsed.host}/${parsed.owner}/${parsed.repo}/blob/${branch}`;
   return src;
 }
