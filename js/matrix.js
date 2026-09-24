@@ -7,7 +7,7 @@
    ============================================================ */
 
 import { loadInsomniaData, STATE, trrUrl } from './data.js';
-import { el, trrCoveragePct } from './utils.js';
+import { el, trrCoveragePct, renderLoadProblems } from './utils.js';
 
 // Overall coverage state for a TRR by aggregating its procedure states.
 function trrOverallState(trr, hasCoverage) {
@@ -128,12 +128,11 @@ export async function renderMatrixView(container) {
   }
 
   container.innerHTML = '';
+  container.append(renderLoadProblems(model));
 
   let platformFilter = 'all';
 
-  // Build the platform options from the union of TRR-source platforms.
-  // Fall back to platforms actually seen on TRRs if the map is empty (e.g.
-  // platform short code unavailable).
+  // Build the platform options from the platforms seen on loaded TRRs.
   const platformNames = model.trrPlatformNames && model.trrPlatformNames.size > 0
     ? Array.from(model.trrPlatformNames).sort()
     : Array.from(new Set(

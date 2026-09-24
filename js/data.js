@@ -27,7 +27,8 @@
 
    Index documents are envelopes (schema 2):
      { schema, generated, platforms: {name: short}, records: [...] }
-   A bare array is still accepted, for sources not yet upgraded.
+   Anything else -- a bare array, or a platform map that is not a
+   name-to-short-code object -- is rejected with a load error.
 
    Model shape:
      {
@@ -113,23 +114,43 @@ async function fetchJson(url) {
 
 // --- Index envelope ---------------------------------------------------
 
-// Accepts the schema-2 envelope or a bare array. Returns the pieces the
-// loader needs, plus any warning about a version we do not understand.
+// Validates and unpacks a schema-2 envelope. Anything Insomnia cannot use
+// reliably is rejected with an error rather than loaded in a degraded form:
+// a source whose platforms cannot be resolved produces procedure IDs that
+// silently fail to match, which reads as missing coverage rather than as a
+// problem with the data.
 function readIndexDocument(doc, sourceName) {
   if (Array.isArray(doc)) {
-    return {
-      records: doc,
-      platforms: {},
-      generated: null,
-      schema: 1,
-      warning: `Source "${sourceName}" uses a pre-envelope index.json. ` +
-               `Platform short codes are unavailable, so procedure joins ` +
-               `may fail. Reindex that repository to upgrade it.`,
-    };
+    throw new Error(
+      'index.json is a bare array, from before the schema-2 envelope. It ' +
+      'carries no platform map, so its platforms cannot be resolved. ' +
+      'Reindex the repository with current tooling.'
+    );
   }
 
   if (!doc || typeof doc !== 'object') {
-    throw new Error('index.json is neither an array nor an object');
+    throw new Error('index.json is not a JSON object');
+  }
+
+  if (!Array.isArray(doc.records)) {
+    throw new Error('index.json envelope has no "records" array');
+  }
+
+  const platforms = doc.platforms;
+  if (!platforms || typeof platforms !== 'object' || Array.isArray(platforms)) {
+    throw new Error(
+      'index.json "platforms" must be a map of display name to short code, ' +
+      'e.g. {"Windows": "win"}. Check the repository\'s platform ' +
+      'configuration and reindex.'
+    );
+  }
+  for (const [name, short] of Object.entries(platforms)) {
+    if (typeof short !== 'string' || !short.trim()) {
+      throw new Error(
+        `index.json platform "${name}" has no short code. Every platform ` +
+        `needs one, e.g. {"${name}": "..."}.`
+      );
+    }
   }
 
   const schema = doc.schema || 1;
@@ -138,22 +159,6 @@ function readIndexDocument(doc, sourceName) {
     warning = `Source "${sourceName}" reports index schema ${schema}, ` +
               `newer than the ${INDEX_SCHEMA_SUPPORTED} this build ` +
               `understands. Some fields may be ignored.`;
-  }
-
-  if (!Array.isArray(doc.records)) {
-    throw new Error('index.json envelope has no "records" array');
-  }
-
-  // platforms should be a display-name -> short-code map. A bare list of
-  // names is accepted so a partially-migrated source still loads, but it
-  // carries no short codes, so procedure IDs from that source cannot be
-  // resolved -- say so rather than letting the joins quietly miss.
-  let platforms = doc.platforms || {};
-  if (Array.isArray(platforms)) {
-    warning = warning || `Source "${sourceName}" lists platforms as an ` +
-      `array rather than a name-to-short-code map, so its platform short ` +
-      `codes are unknown. Update that repository's config.`;
-    platforms = Object.fromEntries(platforms.map(n => [n, null]));
   }
 
   return {
@@ -192,7 +197,7 @@ function normalizeTrr(raw, sourceName, platformShort) {
   return {
     key,
     id: raw.id,
-    title: raw.title || raw.name || '',   // name: pre-envelope sources
+    title: raw.title || '',
     tactics:      raw.tactics      || [],
     platforms:    raw.platforms    || [],
     platformShort,
@@ -391,10 +396,6 @@ export async function loadInsomniaData() {
       if (parsed.warning) model.warnings.push(parsed.warning);
 
       for (const [name, short] of Object.entries(parsed.platforms)) {
-        if (!short) {              // name known, short code unavailable
-          if (!platformClaims.has(name)) platformClaims.set(name, new Map());
-          continue;
-        }
         const upper = String(short).toUpperCase();
         if (!platformClaims.has(name)) platformClaims.set(name, new Map());
         const claims = platformClaims.get(name);
@@ -403,6 +404,7 @@ export async function loadInsomniaData() {
       }
 
       src._records = parsed.records;
+      src._platforms = parsed.platforms;   // this source's own map
     } catch (e) {
       src.error = e.message;
       model.loadErrors.push(
@@ -416,10 +418,6 @@ export async function loadInsomniaData() {
   // two sources unjoinable, which otherwise shows up only as missing coverage.
   for (const [name, claims] of platformClaims) {
     const codes = Array.from(claims.keys());
-    if (codes.length === 0) {
-      model.platforms.set(name, null);   // known name, unknown short code
-      continue;
-    }
     if (codes.length > 1) {
       const detail = codes
         .map(c => `${c} (${claims.get(c).join(', ')})`)
@@ -439,45 +437,80 @@ export async function loadInsomniaData() {
   for (const src of model.sources) {
     if (!src._records) continue;
 
+    // A record's platforms are resolved against the map published in *its
+    // own* source's index -- not the union across sources. Borrowing a short
+    // code from another source would hide the fact that this index is
+    // incomplete, and there is no longer any guessing: a platform that is not
+    // defined is an error, and the record is skipped.
+    const ownPlatforms = src._platforms || {};
+    const skipped = [];                    // "ID (Platform, Platform)"
+
+    const undefinedIn = (names) => names.filter(n => !(n in ownPlatforms));
+
     if (src.Type === SOURCE_TYPE.LIBRARY) {
       for (const raw of src._records) {
         if (!raw.id) continue;
 
-        const primary = raw.platforms && raw.platforms[0];
-        if (primary && isExcluded(primary)) continue;
+        const names = raw.platforms || [];
+        if (names.length === 0) {
+          skipped.push(`${raw.id} (no platform)`);
+          continue;
+        }
+        const missing = undefinedIn(names);
+        if (missing.length) {
+          skipped.push(`${raw.id} (${missing.join(', ')})`);
+          continue;
+        }
 
-        const short = primary
-          ? (model.platforms.get(primary) ||
-             String(primary).slice(0, 3).toUpperCase())
-          : 'XXX';
+        const primary = names[0];
+        if (isExcluded(primary)) continue;
 
+        const short = String(ownPlatforms[primary]).toUpperCase();
         const trr = normalizeTrr(raw, src.Name, short);
         // Keyed by ID *and* platform: one report per platform folder.
         model.trrs.set(trr.key, trr);
         for (const proc of trr.procedures) {
           model.procedures.set(proc.id, proc);
         }
-        for (const p of (raw.platforms || [])) model.trrPlatformNames.add(p);
+        for (const p of names) model.trrPlatformNames.add(p);
       }
     } else if (src.Type === SOURCE_TYPE.COVERAGE) {
       for (const raw of src._records) {
         if (!raw.id) continue;
 
-        const platforms = raw.platforms || [];
-        const rec = normalizeRecord(raw, src.Name);
+        const names = raw.platforms || [];
+        const missing = undefinedIn(names);
+        if (missing.length) {
+          skipped.push(`${raw.id} (${missing.join(', ')})`);
+          continue;
+        }
 
-        if (platforms.length && platforms.every(isExcluded)) {
+        const rec = normalizeRecord(raw, src.Name);
+        if (names.length && names.every(isExcluded)) {
           model.excludedRecords.push(rec);
           continue;
         }
 
         model.records.set(rec.id, rec);
-        for (const p of platforms) model.recordPlatformNames.add(p);
+        for (const p of names) model.recordPlatformNames.add(p);
       }
     }
     // validation and emulation sources are configured but not yet consumed.
 
+    // One error per source, listing every record it had to skip, rather than
+    // a wall of identical messages.
+    if (skipped.length) {
+      const noun = skipped.length === 1 ? 'record' : 'records';
+      model.loadErrors.push(
+        `Source "${src.Name}": ${skipped.length} ${noun} skipped because ` +
+        `they use platforms not defined in that source's index.json: ` +
+        `${skipped.join('; ')}. Add the platforms to the repository's ` +
+        `configuration and reindex.`
+      );
+    }
+
     delete src._records;
+    delete src._platforms;
   }
 
   // --- join ------------------------------------------------------------

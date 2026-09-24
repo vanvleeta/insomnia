@@ -7,7 +7,7 @@ import {
   computeMetrics, coverageByTactic, coverageByPlatform,
   topGaps, topOpportunities, buildTrend, trendDelta, latestAdditions
 } from './metrics.js';
-import { el } from './utils.js';
+import { el, renderLoadProblems } from './utils.js';
 
 // --- Utilities -------------------------------------------------------
 
@@ -301,14 +301,7 @@ export async function renderDashboard(container) {
 
   container.innerHTML = '';
 
-  // Show any per-source load errors
-  if (model.loadErrors.length) {
-    for (const msg of model.loadErrors) {
-      container.append(el('div', { class: 'error-banner' },
-        el('div', { class: 'err-title' }, 'Source failed to load'),
-        el('div', { class: 'err-detail' }, msg)));
-    }
-  }
+  container.append(renderLoadProblems(model));
 
   container.append(renderHeroMetrics(metrics, trend, deltas, model.hasCoverageSource));
   container.append(renderStatStrip(metrics, model.hasCoverageSource));

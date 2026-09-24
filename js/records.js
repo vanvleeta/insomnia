@@ -9,7 +9,7 @@
    ============================================================ */
 
 import { loadInsomniaData, RECORD_TYPE, recordUrl } from './data.js';
-import { el, uniqueSorted } from './utils.js';
+import { el, uniqueSorted, renderLoadProblems } from './utils.js';
 
 const TYPE_DISPLAY = {
   [RECORD_TYPE.GAP]:       'gap',
@@ -192,6 +192,7 @@ export async function renderRecordsView(container) {
   }
 
   container.innerHTML = '';
+  container.append(renderLoadProblems(model));
 
   // No coverage source configured: explain rather than render an empty list.
   if (!model.hasCoverageSource) {

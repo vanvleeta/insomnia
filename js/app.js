@@ -75,7 +75,7 @@ async function initSourceSummary() {
 }
 
 // ---------------------------------------------------------------------
-// Optional site banner.
+// Optional site banner, shown on the dashboard only.
 //
 // Core ships no banner. An instance that wants one -- the public TRR
 // library explaining what the site is, or an internal deployment marking
@@ -132,7 +132,16 @@ function renderInline(text) {
   return nodes;
 }
 
+// The banner belongs to the dashboard only. Detected from the view the page
+// loads rather than from its URL, because a deployment may serve the
+// dashboard at "/", "/insomnia/", or "/insomnia/index.html" alike.
+function isDashboardPage() {
+  return !!document.querySelector('script[src$="init-dashboard.js"]');
+}
+
 async function initBanner() {
+  if (!isDashboardPage()) return;
+
   let config;
   try {
     const r = await fetch('local/config.json', { cache: 'no-cache' });

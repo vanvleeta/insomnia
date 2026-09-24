@@ -28,3 +28,24 @@ export function trrCoveragePct(trr) {
   for (const p of trr.procedures) sum += p.fraction;
   return (sum / trr.procedures.length) * 100;
 }
+
+// Errors and warnings from loading, shown at the top of every view. Before
+// this existed only the dashboard showed errors and nothing showed warnings,
+// so a source failing on another page -- or a cross-source problem such as
+// two sources disagreeing about a platform code -- was invisible.
+export function renderLoadProblems(model) {
+  const frag = document.createDocumentFragment();
+
+  for (const msg of (model.loadErrors || [])) {
+    frag.append(el('div', { class: 'error-banner', role: 'alert' },
+      el('div', { class: 'err-title' }, 'Load error'),
+      el('div', { class: 'err-detail' }, msg)));
+  }
+  for (const msg of (model.warnings || [])) {
+    frag.append(el('div', { class: 'warning-banner', role: 'status' },
+      el('div', { class: 'err-title' }, 'Warning'),
+      el('div', { class: 'err-detail' }, msg)));
+  }
+  return frag;
+}
+

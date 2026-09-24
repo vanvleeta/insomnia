@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { loadInsomniaData, STATE, trrUrl } from './data.js';
-import { el, uniqueSorted, trrCoveragePct } from './utils.js';
+import { el, uniqueSorted, trrCoveragePct, renderLoadProblems } from './utils.js';
 
 function trrCoverageClass(pct) {
   if (pct >= 75) return 'high';
@@ -161,6 +161,7 @@ export async function renderTechniquesView(container, options = {}) {
   }
 
   container.innerHTML = '';
+  container.append(renderLoadProblems(model));
 
   // Build sourceUrl lookup using the centralized helper.
   // Produces: <BaseUrl>/<trr_id_lowercase>/<platform_lowercase>/README.md

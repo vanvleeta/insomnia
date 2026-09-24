@@ -91,9 +91,9 @@ case-insensitive.
 
 ### Optional: a site banner
 
-An instance can show a banner under the header on every page — the public TRR
-library explaining what the site is, or an internal deployment marking itself
-confidential. Core ships none; add a `banner` block to your
+An instance can show a banner at the top of the dashboard — for example, the
+public TRR library explaining what the site is. It appears on the dashboard
+only, not on the Techniques, Records, or Matrix pages. Core ships none; add a `banner` block to your
 `local/config.json`:
 
 ```json
@@ -204,16 +204,22 @@ python3 -m http.server 8000
 
 `file://` will not work: the browser blocks `fetch` of local files.
 
-## Reading the warnings
+## Reading errors and warnings
 
-Insomnia reports problems it can see that no single source can:
+Problems appear at the top of every page — errors in red, warnings in
+amber. Insomnia reports what it can see that no single source can:
 
 **Conflicting platform short codes.** Two sources mapping the same platform to
 different codes means their procedure references cannot match. Fix the
 `platforms` map in whichever source is wrong.
 
-**A source using a pre-envelope index.** Its platform codes are unavailable,
-so its procedure IDs may not resolve. Reindex that repository.
+**A pre-envelope index** (a bare array) is rejected as a load error: it has no
+platform map, so nothing in it can be resolved. Reindex that repository.
+
+**Records skipped for undefined platforms.** A record names a platform its own
+index does not define. The error lists each skipped record and the platform
+at fault; add it to that repository's configuration and reindex. The rest of
+the source still loads.
 
 **An index schema newer than this build.** Update Insomnia.
 

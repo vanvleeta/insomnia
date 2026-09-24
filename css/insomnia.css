@@ -800,6 +800,21 @@ body.library-only .nav-link[href="records.html"] { display: none; }
 .error-banner .err-title { color: var(--gap); font-weight: 500; margin-bottom: 4px; }
 .error-banner .err-detail { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); }
 
+/* Same shape as .error-banner, in amber: a problem worth knowing about that
+   did not stop the page from loading. */
+.warning-banner {
+  background: var(--bg-surface);
+  border: 1px solid var(--brand-dim);
+  border-left: 3px solid var(--brand);
+  padding: 14px 18px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  margin: 14px 0;
+}
+.warning-banner .err-title { color: var(--brand); font-weight: 500; margin-bottom: 4px; }
+.warning-banner .err-detail { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); }
+
 /* ---------- Coming soon ---------- */
 .coming-soon {
   padding: 100px 20px;

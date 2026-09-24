@@ -95,8 +95,13 @@ platform short code — `TRR0030.WIN.A` — and without the map Insomnia would
 have to guess the code from the display name. It used to, and the guess was
 wrong for anything unusual, producing IDs that silently failed to match.
 
-A bare array is still accepted so a source that has not upgraded still loads,
-but Insomnia warns: without the map its procedure IDs cannot be resolved.
+Nothing is guessed. A record whose platform is not defined in **its own
+source's** map is skipped and reported, and an index that is a bare array or
+has no proper platform map is rejected outright. A short code is never
+borrowed from another source either: that would hide the fact that this
+source's index is incomplete. Failing loudly is the point — a source whose
+platforms cannot be resolved produces procedure IDs that silently fail to
+match, which reads as missing coverage rather than as a problem with the data.
 
 ## The model
 
@@ -123,13 +128,14 @@ and offered as a filter.
 ## Cross-source validation
 
 Each source validates its own records; nothing but Insomnia can see two at
-once. At load it reports:
+once. At load it reports the following, at the top of every page:
 
 - **Conflicting platform maps.** If one source maps `Windows` to `WIN` and
   another to `WN`, procedure references between them cannot match. This is
   the failure that otherwise appears only as unexplained missing coverage.
 - **Unsupported index schema**, newer than this build understands.
-- **Pre-envelope sources**, whose platform short codes are unavailable.
+- **Undefined platforms** — records naming a platform their own index
+  does not define. Skipped and listed, one error per source.
 - **Orphaned records**, referencing procedures no library provides.
 
 ## Getting data in
