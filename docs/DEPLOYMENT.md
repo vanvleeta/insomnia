@@ -34,7 +34,7 @@ git push -u origin main
 cp local/config.example.json local/config.json
 ```
 
-Each source needs a `Name`, a `Type`, and either a `Repo` or a `LocalPath`:
+Each source needs a `Name` and a `Type`, and usually a `Repo`:
 
 ```json
 {
@@ -46,7 +46,7 @@ Each source needs a `Name`, a `Type`, and either a `Repo` or a `LocalPath`:
     { "Name": "ACME Coverage", "Type": "coverage",
       "Repo": "https://github.example.com/acme/coverage-records",
       "Branch": "main",
-      "Load": "synced" }
+      "Load": "local" }
   ]
 }
 ```
@@ -58,21 +58,35 @@ directory, which you would then delete by hand.
 **`Type`** is one of `library`, `coverage`, `validation`, or `emulation`.
 Validation and emulation are pulled but not yet displayed.
 
-**`Load`** says where the source's index comes from:
+**`Load`** says where the browser reads the source's index from:
 
-| Value | Meaning | Use for |
-|-------|---------|---------|
-| `live` (default) | The browser fetches it directly | Public repositories on github.com |
-| `synced` | The sync workflows bring it into `data/` | Private repositories, and anything on GitHub Enterprise |
+| Value | Reads | Use for |
+|-------|-------|---------|
+| `live` (default) | the repository's raw URL, directly | Public repositories on github.com |
+| `local` | `data/<slug>/index.json` | Private repositories, GitHub Enterprise, and data you place by hand |
 
-A private repository **must** be `synced`: a browser cannot fetch it, and a
+A private repository **must** be `local`: a browser cannot fetch it, and a
 static page has nowhere safe to keep a token. Leaving one on `live` fails
 loudly with a 404 in the load errors rather than quietly showing nothing.
 
-An Enterprise source should be `synced` even when public. The page's
+An Enterprise source should be `local` even when public. The page's
 Content-Security-Policy only allows the browser to reach
 `raw.githubusercontent.com`, and Insomnia warns at load if a `live` source is
 anywhere else.
+
+**`Repo`** is needed for `live`. For `local` it is optional, and does two
+things when present: it builds links from each card out to the record in its
+repository, and it tells the sync where to fetch the index from. The links work
+for private repositories too — Insomnia cannot read them, but whoever clicks
+through can, with their own credentials.
+
+A `local` source with no `Repo` was placed in `data/` by hand, such as demo
+data. It loads normally; its cards just have no links out, and the sync leaves
+it alone.
+
+The directory is derived from the source `Name`, lowercased with runs of other
+characters turned into hyphens: "ACME Coverage" reads `data/acme-coverage/`.
+Renaming a source therefore means renaming its directory.
 
 You never tell Insomnia whether a source needs a token. The sync tries without
 one first and uses the App token only if that fails, so public sources work
@@ -141,10 +155,10 @@ Read access on sources and write access here is all it needs.
 
 ## 4. Pull your data
 
-**If no source is `synced`, skip this section.** `live` sources are read
+**If no source is `local` with a `Repo`, skip this section.** `live` sources are read
 straight from the repository by the browser, so there is nothing to sync.
 
-For `synced` sources, run **Sync source data** from the Actions tab. It fetches every configured
+Otherwise, run **Sync source data** from the Actions tab. It fetches every configured
 source into `data/<slug>/index.json` and commits only if something changed.
 
 Locally:
@@ -184,8 +198,8 @@ jobs:
 ```
 
 `source-name` must match the `Name` in your config exactly, and that source
-should be `Load: "synced"` — a push writes into `data/`, which is only read for
-synced sources. Either mistake produces a directory nothing reads.
+should be `Load: "local"` — a push writes into `data/`, which is only read for
+local sources. Either mistake produces a directory nothing reads.
 
 Push and pull are complementary. Both write the same place, so a pull after a
 push is a no-op, and the schedule stays useful as a safety net for a source

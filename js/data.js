@@ -15,15 +15,15 @@
        "sources": [
          { "Name": "TIRED Labs",
            "Type": "library" | "coverage" | "validation" | "emulation",
-           "Repo": "https://github.com/owner/repo",   // one of these...
-           "LocalPath": "data/example-library/",      // ...or this
+           "Load": "live" | "local",                   // default live
+           "Repo": "https://github.com/owner/repo",   // needed for live
            "Branch": "main" }                         // optional
        ]
      }
 
    After resolveSourceLocation runs, each source also carries:
      _rawBase   -> base URL/path for fetching index.json
-     _linkBase  -> base URL for building README links (null for LocalPath)
+     _linkBase  -> base URL for building README links (null without Repo)
 
    Index documents are envelopes (schema 2):
      { schema, generated, platforms: {name: short}, records: [...] }
@@ -75,14 +75,18 @@ const CONFIG_PATH = 'local/config.json';
 const INDEX_SCHEMA_SUPPORTED = 2;
 
 // Where a source's index is read from.
-//   live    the browser fetches it from the repository directly
-//   synced  the sync workflows bring it into data/<slug>/ and the browser
-//           reads it from there
+//   live   the browser fetches it from the repository's raw URL
+//   local  the browser reads data/<slug>/index.json
 // Named for the behaviour rather than for repository visibility, because the
-// two are independent: a public repository can reasonably be synced.
+// two are independent: a public repository can reasonably be read locally.
+//
+// Repo is a separate question. It builds the links out to individual
+// records, and for a local source it tells the sync where to fetch from. A
+// local source with no Repo was placed in data/ by hand -- demo data, say --
+// and simply has no links.
 const LOAD = {
-  LIVE:   'live',
-  SYNCED: 'synced',
+  LIVE:  'live',
+  LOCAL: 'local',
 };
 const DEFAULT_LOAD = LOAD.LIVE;
 
@@ -245,7 +249,7 @@ function parseGitHubRepo(repoUrl) {
   return { host: m[1], owner: m[2], repo: m[3] };
 }
 
-// Directory a synced source's index lands in. Must match the derivation in
+// Directory a local source's index is read from. Must match the derivation in
 // tools/sync_sources.py and in the push workflow, or a pull and a push would
 // write two copies and the browser would read neither reliably.
 function sourceSlug(name) {
@@ -255,33 +259,42 @@ function sourceSlug(name) {
 }
 
 function resolveSourceLocation(src) {
+  // Earlier configuration keys, replaced by Load "local". Rejected with a
+  // pointer to the fix rather than silently misread.
   if (src.LocalPath) {
-    const base = src.LocalPath.endsWith('/') ? src.LocalPath : src.LocalPath + '/';
-    src._rawBase = base;
-    src._linkBase = null;
-    return src;
+    throw new Error(
+      `"LocalPath" is no longer used. Set "Load": "local" instead; the index ` +
+      `is read from data/${sourceSlug(src.Name)}/, derived from the source ` +
+      `Name. Add "Repo" too if you want links to the source repository.`
+    );
   }
-
-  const parsed = parseGitHubRepo(src.Repo);
-  if (!parsed) {
-    throw new Error(`Cannot parse Repo URL: ${src.Repo}`);
-  }
-
-  const branch = src.Branch || 'main';
 
   const load = String(src.Load || DEFAULT_LOAD).toLowerCase();
+  if (load === 'synced') {
+    throw new Error(`Load "synced" has been renamed; use "local".`);
+  }
   if (!Object.values(LOAD).includes(load)) {
-    throw new Error(
-      `Load "${src.Load}" is not recognized. Use "live" or "synced".`
-    );
+    throw new Error(`Load "${src.Load}" is not recognized. Use "live" or "local".`);
   }
   src.Load = load;
 
-  if (load === LOAD.SYNCED) {
+  const parsed = src.Repo ? parseGitHubRepo(src.Repo) : null;
+  if (src.Repo && !parsed) {
+    throw new Error(`Cannot parse Repo URL: ${src.Repo}`);
+  }
+  const branch = src.Branch || 'main';
+
+  if (load === LOAD.LOCAL) {
     // A browser cannot fetch a private repository and has nowhere safe to
-    // keep a token, so private data arrives through the sync workflows.
+    // keep a token, so private data is brought into data/ by the workflows.
     src._rawBase = `data/${sourceSlug(src.Name)}/`;
   } else {
+    if (!parsed) {
+      throw new Error(
+        `Load "live" needs a "Repo" to fetch from. If this source's index is ` +
+        `already in data/, set "Load": "local".`
+      );
+    }
     const rawHost = parsed.host === 'github.com'
       ? 'raw.githubusercontent.com'
       : `${parsed.host}/raw`;          // GitHub Enterprise
@@ -289,9 +302,12 @@ function resolveSourceLocation(src) {
     src._rawHost = rawHost.split('/')[0];
   }
 
-  // Repo always builds links out to individual records, which the viewer
-  // opens with their own credentials.
-  src._linkBase = `https://${parsed.host}/${parsed.owner}/${parsed.repo}/blob/${branch}`;
+  // Links to individual records come from Repo whenever it is given, local
+  // or live. The viewer opens them with their own credentials, so a private
+  // repository still links correctly for anyone entitled to read it.
+  src._linkBase = parsed
+    ? `https://${parsed.host}/${parsed.owner}/${parsed.repo}/blob/${branch}`
+    : null;
   return src;
 }
 
@@ -374,7 +390,7 @@ export async function loadInsomniaData() {
       model.warnings.push(
         `Source "${src.Name}" is set to Load "live" on ${src._rawHost}, ` +
         `which this page's Content-Security-Policy does not allow, so the ` +
-        `browser will refuse the fetch. Set it to "synced" so the sync ` +
+        `browser will refuse the fetch. Set it to "local" so the sync ` +
         `workflows bring its data in instead.`
       );
     }

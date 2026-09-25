@@ -153,15 +153,15 @@ place rather than creating two copies.
 
 Each source sets `Load`, naming where its index comes from rather than how
 visible its repository is — the two are independent, and a public repository
-can reasonably be synced:
+can reasonably be read locally:
 
 | `Load` | Browser reads | Sync pulls it |
 |--------|---------------|---------------|
 | `live` (default) | the repository's raw URL, directly | no |
-| `synced` | the copy under `data/<slug>/` | yes |
+| `local` | `data/<slug>/index.json` | yes, if it has a `Repo` |
 
 A browser cannot fetch a private repository and has nowhere safe to keep a
-token, so private data must be `synced`. Public data can be either, and a
+token, so private data must be `local`. Public data can be either, and a
 library-only deployment — the configuration serving a public TRR library —
 works with no workflow configured at all.
 
@@ -175,7 +175,7 @@ why no per-source auth setting is needed.
 A `live` source must be on a host the page's Content-Security-Policy allows,
 which is `raw.githubusercontent.com`. Insomnia warns at load when one is not,
 so the browser's refusal comes with its cause attached. An Enterprise source
-should be `synced`, which also avoids the instance's SSO and CORS rules.
+should be `local`, which also avoids the instance's SSO and CORS rules.
 
 `Repo` always builds the links out to individual records, which the viewer
 opens with their own credentials. Both commit only when data actually

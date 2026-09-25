@@ -15,10 +15,11 @@ import urllib.request
 CONFIG_FILE = os.path.join("local", "config.json")
 DATA_DIR = "data"
 
-# Only synced sources are pulled. A live source is fetched by the browser
-# directly, so a copy in data/ would be one nothing reads -- harmless, but
-# confusing to anyone looking at what the site actually displays.
-LOAD_SYNCED = "synced"
+# Only local sources with a Repo are pulled. A live source is fetched by the
+# browser directly, so a copy in data/ would be one nothing reads. A local
+# source with no Repo was placed in data/ by hand and has nowhere to be
+# fetched from.
+LOAD_LOCAL = "local"
 DEFAULT_LOAD = "live"
 
 # Types whose index.json this deployment reads. validation and emulation
@@ -148,16 +149,15 @@ if __name__ == "__main__":
             print(f"[=] {name}: type '{source_type}' is not pulled; skipping.")
             continue
 
-        # A LocalPath source is already in the repository -- typically the
-        # bundled examples -- and has nothing to fetch.
-        if source.get("LocalPath"):
-            print(f"[=] {name}: LocalPath source; nothing to fetch.")
-            continue
-
         load = str(source.get("Load", DEFAULT_LOAD)).lower()
-        if load != LOAD_SYNCED:
+        if load != LOAD_LOCAL:
             print(f"[=] {name}: Load \"{load}\"; the browser fetches it "
                   f"directly, nothing to sync.")
+            continue
+
+        if not source.get("Repo"):
+            print(f"[=] {name}: local, with no Repo; placed in data/ by hand, "
+                  f"nothing to fetch.")
             continue
 
         parsed = parse_repo(source.get("Repo", ""))

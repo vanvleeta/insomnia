@@ -30,10 +30,10 @@
       "Load": "live"
     },
     {
-      "Name": "ACME Coverage",
+      "Name": "ACME",
       "Type": "coverage",
       "Repo": "https://github.example.com/acme/coverage-records",
-      "Load": "synced"
+      "Load": "local"
     }
   ]
 }
