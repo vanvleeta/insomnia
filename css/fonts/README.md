@@ -3,7 +3,7 @@
 Served from this site rather than from Google Fonts, for two reasons:
 
 - **The Content-Security-Policy.** `style-src` and `font-src` allow only this
-  origin (plus the icon CDN). The Google Fonts stylesheet this replaced was
+  origin and the icon CDN. The Google Fonts stylesheet this replaced was
   always refused, so these faces never loaded and every visitor saw fallback
   fonts.
 - **Privacy.** A Google Fonts request sends each visitor's IP address to a

@@ -154,11 +154,12 @@ updates from upstream does not conflict with what an instance owns.
 
 - **No build step.** ES modules served as-is, over any local web server.
 - **Self-hosted fonts.** IBM Plex Sans, IBM Plex Mono, and DM Serif Display
-  are served from `css/fonts/`, not Google Fonts — see
-  [css/fonts/README.md](css/fonts/README.md). The only third-party request is
-  the Tabler icon webfont, from a CDN.
-- **Strict Content-Security-Policy.** Scripts, styles, and fonts load only from
-  the site itself — no inline styles, no inline scripts. Style an element from
+  are served from `css/fonts/` — see [css/fonts/README.md](css/fonts/README.md).
+  The Tabler icon webfont loads from jsDelivr, which the CSP allows in
+  `style-src` and `font-src`, and in `connect-src` for the stylesheet's source
+  map, which browsers fetch while DevTools is open.
+- **Strict Content-Security-Policy.** Scripts load only from the site itself;
+  styles and fonts from the site and the icon CDN — no inline styles, no inline scripts. Style an element from
   script through its `.style` property, not a `style` attribute: the policy
   refuses the attribute silently. A `live` source must be on
   a host `connect-src` allows, which is `raw.githubusercontent.com`.
