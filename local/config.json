@@ -32,7 +32,6 @@
     {
       "Name": "ACME",
       "Type": "coverage",
-      "Repo": "https://github.example.com/acme/coverage-records",
       "Load": "local"
     }
   ]

@@ -1,0 +1,1034 @@
+{
+  "schema": 2,
+  "generated": "2026-09-23T20:26:26Z",
+  "platforms": {
+    "Active Directory": "ad",
+    "Azure": "azr",
+    "Microsoft 365": "m365",
+    "Windows": "win",
+    "Linux": "lin",
+    "macOS": "mac"
+  },
+  "records": [
+    {
+      "title": "Endpoint coverage for Clandestine data transfer",
+      "id": "PCR0010",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion",
+        "Initial Access"
+      ],
+      "techniques": [
+        "T1200"
+      ],
+      "procedures": [
+        "TRR0017.WIN.C"
+      ],
+      "pub_date": "2026-06-02",
+      "provider": "EDR",
+      "provider_details": {
+        "schedule": "realtime",
+        "ioa_name": "ACME_EXEC_LATERAL"
+      }
+    },
+    {
+      "title": "Endpoint coverage for Intercept Tickets On the Network",
+      "id": "PCR0011",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Dana Okafor",
+        "Sofia Lindqvist"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.C"
+      ],
+      "pub_date": "2026-01-10",
+      "provider": "EDR",
+      "provider_details": {
+        "schedule": "realtime",
+        "ioa_name": "ACME_PERSIST_EXEC"
+      }
+    },
+    {
+      "title": "Detection for Malicious TLS Callback",
+      "id": "PCR0012",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Priya Raman",
+        "Dana Okafor"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Privilege Escalation"
+      ],
+      "techniques": [
+        "T1055.001",
+        "T1055.002",
+        "T1055.005"
+      ],
+      "procedures": [
+        "TRR0026.WIN.A"
+      ],
+      "pub_date": "2025-08-04",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "30m",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001001",
+        "rule_version": "3",
+        "avl_use_case": "AVL_UC005001",
+        "lookback": "Standard",
+        "mode": "Alert",
+        "severity": "Medium",
+        "confidence": "Low",
+        "tr_playbook": "tr_compromised_credentials"
+      }
+    },
+    {
+      "title": "Detection for Harvest Tickets off Endpoints",
+      "id": "PCR0013",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.D"
+      ],
+      "pub_date": "2026-08-24",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "12h",
+        "detection_type": "SecFirst",
+        "avl_rule": "AVL_R001002",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005002",
+        "lookback": "7d",
+        "mode": "Warn",
+        "severity": "Low",
+        "confidence": "Medium",
+        "tr_playbook": "tr_cloud_threats"
+      }
+    },
+    {
+      "title": "Preventative control for Enumerate SPNs with ADWS",
+      "id": "PCR0014",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.B"
+      ],
+      "pub_date": "2025-09-22",
+      "provider": "Preventative",
+      "provider_details": {}
+    },
+    {
+      "title": "Detection for Valid Credentials",
+      "id": "PCR0015",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.A"
+      ],
+      "pub_date": "2025-09-27",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "12h",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001003",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005003",
+        "lookback": "Standard",
+        "mode": "Alert",
+        "severity": "Low",
+        "confidence": "Medium",
+        "tr_playbook": "tr_ioc_match"
+      }
+    },
+    {
+      "title": "Detection for Add credentials",
+      "id": "PCR0016",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe"
+      ],
+      "platforms": [
+        "Azure",
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.A",
+        "TRR0023.WIN.C"
+      ],
+      "pub_date": "2026-07-18",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "4h",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001004",
+        "rule_version": "4",
+        "avl_use_case": "AVL_UC005004",
+        "lookback": "30d",
+        "mode": "Alert",
+        "severity": "Low",
+        "confidence": "Medium",
+        "tr_playbook": "tr_compromised_credentials"
+      }
+    },
+    {
+      "title": "Preventative control for Add API permissions",
+      "id": "PCR0017",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Sofia Lindqvist",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1098.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.D"
+      ],
+      "pub_date": "2026-01-22",
+      "provider": "Preventative",
+      "provider_details": {}
+    },
+    {
+      "title": "Detection for Reduce Mailbox Audited Actions (Per Mailbox)",
+      "id": "PCR0018",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Microsoft 365",
+        "Windows"
+      ],
+      "tactics": [
+        "Collection",
+        "Defense Evasion",
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1114.002",
+        "T1218.005",
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.M365.D",
+        "TRR0016.WIN.A",
+        "TRR0019.M365.C"
+      ],
+      "pub_date": "2025-12-01",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "1h",
+        "detection_type": "OpsFirst",
+        "avl_rule": "AVL_R001005",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005005",
+        "lookback": "30d",
+        "mode": "Warn",
+        "severity": "Low",
+        "confidence": "Low",
+        "tr_playbook": "tr_ioc_match"
+      }
+    },
+    {
+      "title": "Detection for Queue Remote APC",
+      "id": "PCR0019",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Privilege Escalation"
+      ],
+      "techniques": [
+        "T1055.001",
+        "T1055.002",
+        "T1055.004"
+      ],
+      "procedures": [
+        "TRR0025.WIN.A"
+      ],
+      "pub_date": "2025-08-19",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "30m",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001006",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005006",
+        "lookback": "30d",
+        "mode": "Warn",
+        "severity": "Medium",
+        "confidence": "Medium",
+        "tr_playbook": "tr_malware"
+      }
+    },
+    {
+      "title": "Retired: Endpoint coverage for Hijack via an internal user",
+      "id": "PCR0020",
+      "type": "Coverage",
+      "status": "Retired",
+      "contributors": [
+        "Marcus Bell",
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Active Directory",
+        "Azure"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Impact",
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT507.3",
+        "T1496.004",
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0022.AZR.B",
+        "TRR0012.AD.A"
+      ],
+      "pub_date": "2026-07-05",
+      "provider": "EDR",
+      "provider_details": {
+        "schedule": "realtime",
+        "ioa_name": "ACME_EXEC_EXFIL"
+      }
+    },
+    {
+      "title": "Endpoint coverage for Insert a rogue DC",
+      "id": "PCR0021",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Sofia Lindqvist",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1207"
+      ],
+      "procedures": [
+        "TRR0014.AD.A"
+      ],
+      "pub_date": "2025-09-22",
+      "provider": "EDR",
+      "provider_details": {
+        "schedule": "realtime",
+        "ioa_name": "ACME_EXEC_EXFIL"
+      }
+    },
+    {
+      "title": "Retired: Detection for Disable Unified Audit Log Ingestion",
+      "id": "PCR0022",
+      "type": "Coverage",
+      "status": "Retired",
+      "contributors": [
+        "Tom Achebe",
+        "Dana Okafor"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.M365.A"
+      ],
+      "pub_date": "2026-02-05",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "30m",
+        "detection_type": "OpsFirst",
+        "avl_rule": "AVL_R001007",
+        "rule_version": "3",
+        "avl_use_case": "AVL_UC005007",
+        "lookback": "7d",
+        "mode": "Warn",
+        "severity": "Medium",
+        "confidence": "High",
+        "tr_playbook": "tr_ioc_match"
+      }
+    },
+    {
+      "title": "Detection for Enumerate SPNs with LDAP",
+      "id": "PCR0023",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Active Directory",
+        "Azure",
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion",
+        "Persistence"
+      ],
+      "techniques": [
+        "T1070.001",
+        "T1484.002",
+        "T1556.007"
+      ],
+      "procedures": [
+        "TRR0018.AD.A",
+        "TRR0023.WIN.B",
+        "TRR0031.AZR.B"
+      ],
+      "pub_date": "2026-03-17",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "24h",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001008",
+        "rule_version": "3",
+        "avl_use_case": "AVL_UC005008",
+        "lookback": "30d",
+        "mode": "Warn",
+        "severity": "Critical",
+        "confidence": "Medium",
+        "tr_playbook": "tr_email"
+      }
+    },
+    {
+      "title": "Detection for Add role",
+      "id": "PCR0024",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1098.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.C"
+      ],
+      "pub_date": "2026-07-02",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "12h",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001009",
+        "rule_version": "2",
+        "avl_use_case": "AVL_UC005009",
+        "lookback": "30d",
+        "mode": "Alert",
+        "severity": "Critical",
+        "confidence": "Low",
+        "tr_playbook": "tr_ioc_match"
+      }
+    },
+    {
+      "title": "Retired: Detection for Acquire Registry Backup",
+      "id": "PCR0025",
+      "type": "Coverage",
+      "status": "Retired",
+      "contributors": [
+        "Tom Achebe",
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Azure",
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1003.002",
+        "T1218.005",
+        "T1606.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.E",
+        "TRR0032.AZR.B",
+        "TRR0016.WIN.B"
+      ],
+      "pub_date": "2026-05-30",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "1h",
+        "detection_type": "OpsFirst",
+        "avl_rule": "AVL_R001010",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005010",
+        "lookback": "30d",
+        "mode": "Alert",
+        "severity": "Critical",
+        "confidence": "Medium",
+        "tr_playbook": "tr_cloud_threats"
+      }
+    },
+    {
+      "title": "Detection for Add owner",
+      "id": "PCR0026",
+      "type": "Coverage",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang",
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1098.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.B"
+      ],
+      "pub_date": "2026-05-05",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "15m",
+        "detection_type": "IOC Match",
+        "avl_rule": "AVL_R001011",
+        "rule_version": "1",
+        "avl_use_case": "AVL_UC005011",
+        "lookback": "30d",
+        "mode": "Warn",
+        "severity": "Medium",
+        "confidence": "Low",
+        "tr_playbook": "tr_malware"
+      }
+    },
+    {
+      "title": "No telemetry for Enumerate SPNs with LDAP",
+      "id": "PCR0027",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.A"
+      ],
+      "pub_date": "2026-08-18"
+    },
+    {
+      "title": "No telemetry for Event Logging Process Termination",
+      "id": "PCR0028",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell",
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.B"
+      ],
+      "pub_date": "2026-08-20"
+    },
+    {
+      "title": "No telemetry for Add new federated domain",
+      "id": "PCR0029",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Persistence"
+      ],
+      "techniques": [
+        "T1484.002",
+        "T1556.007"
+      ],
+      "procedures": [
+        "TRR0031.AZR.B"
+      ],
+      "pub_date": "2025-10-17"
+    },
+    {
+      "title": "No telemetry for Add role",
+      "id": "PCR0030",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1098.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.C"
+      ],
+      "pub_date": "2026-01-14"
+    },
+    {
+      "title": "No telemetry for Acquire Registry Backup",
+      "id": "PCR0031",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.E"
+      ],
+      "pub_date": "2025-10-05"
+    },
+    {
+      "title": "No telemetry for Exchange forged token via SAML Bearer flow",
+      "id": "PCR0032",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1606.002"
+      ],
+      "procedures": [
+        "TRR0032.AZR.B"
+      ],
+      "pub_date": "2026-01-27"
+    },
+    {
+      "title": "No telemetry for RunDll32 calling RunHTMLApplication from mshtml.dll",
+      "id": "PCR0033",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang",
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1218.005"
+      ],
+      "procedures": [
+        "TRR0016.WIN.B"
+      ],
+      "pub_date": "2026-02-01"
+    },
+    {
+      "title": "No telemetry for Add owner",
+      "id": "PCR0034",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT501.2",
+        "AZT502.2",
+        "T1098.001"
+      ],
+      "procedures": [
+        "TRR0020.AZR.B"
+      ],
+      "pub_date": "2025-10-03"
+    },
+    {
+      "title": "No telemetry for Hardware-based keystroke logging",
+      "id": "PCR0035",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe",
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion",
+        "Initial Access"
+      ],
+      "techniques": [
+        "T1200"
+      ],
+      "procedures": [
+        "TRR0017.WIN.A"
+      ],
+      "pub_date": "2026-04-11"
+    },
+    {
+      "title": "No telemetry for Raw Disk Access",
+      "id": "PCR0036",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.D"
+      ],
+      "pub_date": "2025-11-10"
+    },
+    {
+      "title": "No telemetry for API Access as an Application",
+      "id": "PCR0037",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.B"
+      ],
+      "pub_date": "2026-09-09"
+    },
+    {
+      "title": "No telemetry for Volume shadow copy access",
+      "id": "PCR0038",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Marcus Bell"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.003"
+      ],
+      "procedures": [
+        "TRR0015.WIN.A"
+      ],
+      "pub_date": "2026-04-17"
+    },
+    {
+      "title": "No telemetry for Local Registry Access",
+      "id": "PCR0039",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe",
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.A"
+      ],
+      "pub_date": "2025-10-21"
+    },
+    {
+      "title": "No telemetry for Forge a TGT from scratch (Golden Ticket)",
+      "id": "PCR0040",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Dana Okafor"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.001"
+      ],
+      "procedures": [
+        "TRR0013.AD.A"
+      ],
+      "pub_date": "2026-02-03"
+    },
+    {
+      "title": "No telemetry for Hijack via an external guest user",
+      "id": "PCR0041",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Sofia Lindqvist",
+        "Tom Achebe"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Impact",
+        "Persistence"
+      ],
+      "techniques": [
+        "AZT507.3",
+        "T1496.004"
+      ],
+      "procedures": [
+        "TRR0022.AZR.A"
+      ],
+      "pub_date": "2025-12-15"
+    },
+    {
+      "title": "No telemetry for Remote Registry Access",
+      "id": "PCR0042",
+      "type": "Gap",
+      "status": "Active",
+      "contributors": [
+        "Tom Achebe"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.B"
+      ],
+      "pub_date": "2026-06-29"
+    },
+    {
+      "title": "Baseline logging standard for domain controllers",
+      "id": "PCR0043",
+      "type": "Coverage",
+      "status": "Active",
+      "provider": "Preventative",
+      "provider_details": {},
+      "contributors": [
+        "Priya Raman"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [],
+      "techniques": [],
+      "procedures": [],
+      "pub_date": "2026-09-06"
+    },
+    {
+      "title": "Coverage for a retired technique report",
+      "id": "PCR0044",
+      "type": "Coverage",
+      "status": "Active",
+      "provider": "Anvilogic",
+      "provider_details": {
+        "schedule": "15m",
+        "detection_type": "OpsFirst",
+        "avl_rule": "AVL_R001999",
+        "rule_version": "3",
+        "avl_use_case": "AVL_UC005999",
+        "lookback": "30d",
+        "mode": "Warn",
+        "severity": "Medium",
+        "confidence": "High",
+        "tr_playbook": "tr_malware"
+      },
+      "contributors": [
+        "Wei Zhang"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1547"
+      ],
+      "procedures": [
+        "TRR9998.WIN.A"
+      ],
+      "pub_date": "2026-07-23"
+    }
+  ]
+}
