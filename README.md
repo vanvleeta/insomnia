@@ -135,7 +135,9 @@ coloured by coverage state when coverage data is loaded.
 ├── .github/workflows/
 │   ├── sync-sources.yml        # scheduled pull
 │   └── push-to-insomnia.yml    # reusable push, called by sources
-├── css/insomnia.css
+├── css/
+│   ├── insomnia.css
+│   └── fonts/                  # self-hosted fonts and their licences
 ├── js/
 │   ├── app.js                  # shared page setup: theme, header, banner
 │   ├── data.js                 # load, validate, normalize, join
@@ -151,10 +153,14 @@ updates from upstream does not conflict with what an instance owns.
 ## Development notes
 
 - **No build step.** ES modules served as-is, over any local web server.
-- **No runtime dependencies** beyond the Tabler icon webfont, loaded from a
-  CDN.
-- **Strict Content-Security-Policy.** Scripts and styles load only from the
-  site itself — no inline styles, no inline scripts. A `live` source must be on
+- **Self-hosted fonts.** IBM Plex Sans, IBM Plex Mono, and DM Serif Display
+  are served from `css/fonts/`, not Google Fonts — see
+  [css/fonts/README.md](css/fonts/README.md). The only third-party request is
+  the Tabler icon webfont, from a CDN.
+- **Strict Content-Security-Policy.** Scripts, styles, and fonts load only from
+  the site itself — no inline styles, no inline scripts. Style an element from
+  script through its `.style` property, not a `style` attribute: the policy
+  refuses the attribute silently. A `live` source must be on
   a host `connect-src` allows, which is `raw.githubusercontent.com`.
 
 ## Roadmap

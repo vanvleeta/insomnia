@@ -8,6 +8,10 @@ export function el(tag, attrs, ...kids) {
     for (const [k, v] of Object.entries(attrs)) {
       if (k === 'class') n.className = v;
       else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      // Applied through the CSSOM rather than as an attribute: the page's
+      // Content-Security-Policy refuses style attributes, so setAttribute
+      // would leave the element unstyled -- silently.
+      else if (k === 'style') n.style.cssText = v;
       else n.setAttribute(k, v);
     }
   }
