@@ -28,6 +28,12 @@
       "Type": "library",
       "Repo": "https://github.com/vanvleeta/my-trr-library",
       "Load": "live"
+    },
+    {
+      "Name": "ACME Coverage",
+      "Type": "coverage",
+      "Repo": "https://github.example.com/acme/coverage-records",
+      "Load": "synced"
     }
   ]
 }
