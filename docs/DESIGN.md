@@ -20,14 +20,22 @@ is the only component that sees more than one repository at a time.
 
 ## Sensitivity
 
-**A deployment with a coverage source is as sensitive as that source.** The
-assembled site is a map of what an organization can and cannot detect, which
-is exactly what an attacker would want.
+**A deployment loading an organization's coverage or gap records is as
+sensitive as those records.** The assembled site is a map of what the
+organization can and cannot detect, which is exactly what an attacker would
+want.
 
-A library-only deployment is safe to publish — that is the configuration that
-serves a public TRR library. Any deployment with a coverage source belongs on
-private hosting: GitHub Pages on a plan supporting private Pages, or internal
-hosting of the built site.
+Opportunity records are different. They describe what *could* be detected, with
+no implementation detail, so a deployment loading only libraries and published
+opportunities is safe to publish — that is the configuration serving the
+public TRR library, with its detection opportunities. Anything loading an
+organization's own coverage or gap records belongs on private hosting: GitHub
+Pages on a plan supporting private Pages, or internal hosting of the built site.
+
+For the same reason, Insomnia decides what to show from the record types it
+loaded, not from source types. The public opportunities library is a coverage
+source, but holds no coverage, so Insomnia never shows a coverage percentage
+for it — it shows where opportunities exist instead.
 
 ## Configuration
 
@@ -68,9 +76,9 @@ also changing the transport.
 metrics reflect the estate an organization actually runs. Excluding AWS
 removes AWS reports from every view and from every score.
 
-A coverage record referencing only excluded procedures is reported as
-**excluded**, not orphaned. Removing a platform should not invent a pile of
-data-quality problems that did not exist.
+A record referencing only excluded procedures is set aside rather than listed
+as orphaned. Removing a platform should not invent a pile of data-quality
+problems that did not exist.
 
 ## The index contract
 

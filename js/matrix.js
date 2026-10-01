@@ -6,24 +6,27 @@
    coverage state. Click a cell to expand its procedures.
    ============================================================ */
 
-import { loadInsomniaData, STATE, trrUrl } from './data.js';
-import { el, trrCoveragePct, renderLoadProblems } from './utils.js';
+import {STATE, trrUrl} from './data.js';
+import { el, trrCoveragePct, loadViewModel, renderStateLegend } from './utils.js';
 
 // Overall coverage state for a TRR by aggregating its procedure states.
-function trrOverallState(trr, hasCoverage) {
-  if (!hasCoverage) return 'unknown';
-  if (!trr.procedures.length) return STATE.OPPORTUNITY;
-  let covered = 0, partial = 0, gap = 0, opportunity = 0;
+function trrOverallState(trr, hasStateData) {
+  if (!hasStateData) return 'unknown';
+  if (!trr.procedures.length) return STATE.UNASSESSED;
+  let covered = 0, gap = 0, opportunity = 0, unassessed = 0;
   for (const p of trr.procedures) {
     if (p.state === STATE.COVERED) covered++;
-    else if (p.state === STATE.PARTIAL) partial++;
     else if (p.state === STATE.GAP) gap++;
-    else opportunity++;
+    else if (p.state === STATE.OPPORTUNITY) opportunity++;
+    else if (p.state === STATE.UNASSESSED) unassessed++;
   }
   const total = trr.procedures.length;
   if (covered === total) return STATE.COVERED;
   if (gap === total) return STATE.GAP;
-  if (opportunity === total) return STATE.OPPORTUNITY;
+  if (unassessed === total) return STATE.UNASSESSED;
+  // Nothing assessed yet, but at least one published opportunity: the report
+  // has an actionable starting point.
+  if (opportunity + unassessed === total) return STATE.OPPORTUNITY;
   return STATE.PARTIAL;
 }
 
@@ -66,12 +69,12 @@ function buildMatrix(model, platformFilter) {
   const tactics = orderedTactics(allTactics);
 
   // For each tactic, collect TRRs
-  const order = { [STATE.GAP]: 0, [STATE.PARTIAL]: 1, [STATE.OPPORTUNITY]: 2, [STATE.COVERED]: 3, 'unknown': 4 };
+  const order = { [STATE.GAP]: 0, [STATE.PARTIAL]: 1, [STATE.OPPORTUNITY]: 2, [STATE.UNASSESSED]: 3, [STATE.COVERED]: 4, 'unknown': 5 };
   const columns = tactics.map(tactic => {
     const colTrrs = trrs.filter(t => t.tactics.includes(tactic));
     colTrrs.sort((a, b) => {
-      const sa = trrOverallState(a, model.hasCoverageSource);
-      const sb = trrOverallState(b, model.hasCoverageSource);
+      const sa = trrOverallState(a, model.hasStateData);
+      const sb = trrOverallState(b, model.hasStateData);
       if (order[sa] !== order[sb]) return order[sa] - order[sb];
       return a.id.localeCompare(b.id);
     });
@@ -82,11 +85,11 @@ function buildMatrix(model, platformFilter) {
 }
 
 function renderCell(trr, model) {
-  const state = trrOverallState(trr, model.hasCoverageSource);
+  const state = trrOverallState(trr, model.hasStateData);
   const pct = trrCoveragePct(trr);
   const href = trrUrl(trr, model);
 
-  const tooltip = model.hasCoverageSource
+  const tooltip = model.hasCoverageRecords
     ? `${trr.id} · ${trr.title}\n${trr.procedures.length} procedures · ${Math.round(pct)}% covered`
     : `${trr.id} · ${trr.title}\n${trr.procedures.length} procedures`;
 
@@ -97,38 +100,16 @@ function renderCell(trr, model) {
   },
     el('div', { class: 'matrix-cell-id mono' }, trr.id),
     el('div', { class: 'matrix-cell-name' }, trr.title),
-    model.hasCoverageSource ? el('div', { class: 'matrix-cell-pct mono' }, Math.round(pct) + '%') : null,
+    model.hasCoverageRecords ? el('div', { class: 'matrix-cell-pct mono' }, Math.round(pct) + '%') : null,
   );
   return cell;
 }
 
-function renderLegend(hasCoverage) {
-  if (!hasCoverage) return null;
-  return el('div', { class: 'legend' },
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw covered' }), 'covered'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw partial' }), 'partial'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw gap' }), 'gap'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw opportunity' }), 'opportunity'),
-  );
-}
 
 export async function renderMatrixView(container) {
-  container.innerHTML = '';
-  container.append(el('div', { class: 'loader' }, 'Loading matrix'));
+  const model = await loadViewModel(container, 'Loading matrix');
+  if (!model) return;
 
-  let model;
-  try {
-    model = await loadInsomniaData();
-  } catch (e) {
-    container.innerHTML = '';
-    container.append(el('div', { class: 'error-banner' },
-      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
-      el('div', { class: 'err-detail' }, e.message)));
-    return;
-  }
-
-  container.innerHTML = '';
-  container.append(renderLoadProblems(model));
 
   let platformFilter = 'all';
 
@@ -149,13 +130,13 @@ export async function renderMatrixView(container) {
 
   // Header strip: filter on the left, legend + summary on the right.
   const summaryText = el('span');
-  const orderingNote = model.hasCoverageSource
+  const orderingNote = model.hasStateData
     ? el('span', { style: 'color: var(--text-dim);' }, ' · ordered with what-needs-work first')
     : null;
   const header = el('div', { class: 'matrix-header' },
     el('div', { class: 'matrix-controls' }, platformSel),
     el('div', { class: 'matrix-summary' }, summaryText, orderingNote),
-    renderLegend(model.hasCoverageSource),
+    renderStateLegend(model),
   );
   container.append(header);
 

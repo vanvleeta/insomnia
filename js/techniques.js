@@ -3,8 +3,8 @@
    layout and coverage indicators. Supports search, filters, sort.
    ============================================================ */
 
-import { loadInsomniaData, STATE, trrUrl } from './data.js';
-import { el, uniqueSorted, trrCoveragePct, renderLoadProblems } from './utils.js';
+import {STATE, trrUrl} from './data.js';
+import { el, uniqueSorted, trrCoveragePct, loadViewModel } from './utils.js';
 
 function trrCoverageClass(pct) {
   if (pct >= 75) return 'high';
@@ -17,11 +17,14 @@ function procCountsLabel(proc) {
   const parts = [];
   if (proc.coveredCount > 0) parts.push(`${proc.coveredCount} cov`);
   if (proc.gapCount > 0)     parts.push(`${proc.gapCount} gap`);
-  if (parts.length === 0)    return 'opportunity';
+  // Published opportunities are listed whatever the procedure's state: they
+  // are a menu an engineer chooses from, not a count of what is outstanding.
+  if (proc.opportunityCount > 0) parts.push(`${proc.opportunityCount} opp`);
+  if (parts.length === 0)    return 'unassessed';
   return parts.join(' · ');
 }
 
-function renderTrrCard(trr, model, sourceUrl, hasCoverage) {
+function renderTrrCard(trr, model, sourceUrl) {
   const pct = trrCoveragePct(trr);
   const pctCls = trrCoverageClass(pct);
 
@@ -61,13 +64,13 @@ function renderTrrCard(trr, model, sourceUrl, hasCoverage) {
     ids.append(el('span', { class: 'more-ids', title: fullList }, `+${hidden}`));
   }
 
-  // Card head — coverage % only when we have a coverage source
+  // Card head — coverage % only when coverage or gap records are loaded
   const headLeft = el('div', { class: 'card-head-left' },
     el('div', { class: 'card-title' }, titleNode),
     ids,
   );
   const headChildren = [headLeft];
-  if (hasCoverage) {
+  if (model.hasCoverageRecords) {
     headChildren.push(el('div', { class: `coverage-pct ${pctCls}` },
       Math.round(pct) + '%',
       el('span', { class: 'pct-label' }, 'COVERED')));
@@ -88,7 +91,7 @@ function renderTrrCard(trr, model, sourceUrl, hasCoverage) {
   // Procedure list
   const list = el('div', { class: 'proc-list' });
   for (const proc of trr.procedures) {
-    if (hasCoverage) {
+    if (model.hasStateData) {
       list.append(el('a', {
         class: 'proc-row proc-row-link',
         href: `records.html?procedure=${encodeURIComponent(proc.id)}`,
@@ -131,6 +134,7 @@ function matchesFilters(trr, filters) {
     if (filters.coverage === 'uncovered'    && pct > 0)   return false;
     if (filters.coverage === 'has-gap'      && !trr.procedures.some(p => p.state === STATE.GAP || p.state === STATE.PARTIAL)) return false;
     if (filters.coverage === 'opportunity'  && !trr.procedures.some(p => p.state === STATE.OPPORTUNITY)) return false;
+    if (filters.coverage === 'unassessed'   && !trr.procedures.some(p => p.state === STATE.UNASSESSED)) return false;
   }
   if (filters.search) {
     const q = filters.search.toLowerCase();
@@ -145,23 +149,10 @@ function matchesFilters(trr, filters) {
   return true;
 }
 
-export async function renderTechniquesView(container, options = {}) {
-  container.innerHTML = '';
-  container.append(el('div', { class: 'loader' }, 'Loading sources'));
+export async function renderTechniquesView(container) {
+  const model = await loadViewModel(container, 'Loading sources');
+  if (!model) return;
 
-  let model;
-  try {
-    model = await loadInsomniaData();
-  } catch (e) {
-    container.innerHTML = '';
-    container.append(el('div', { class: 'error-banner' },
-      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
-      el('div', { class: 'err-detail' }, e.message)));
-    return;
-  }
-
-  container.innerHTML = '';
-  container.append(renderLoadProblems(model));
 
   // Build sourceUrl lookup using the centralized helper.
   // Produces: <BaseUrl>/<trr_id_lowercase>/<platform_lowercase>/README.md
@@ -218,19 +209,25 @@ export async function renderTechniquesView(container, options = {}) {
   createdSel.addEventListener('change', () => { filters.created = createdSel.value; rerender(); });
 
   let covSel = null;
-  if (model.hasCoverageSource) {
-    covSel = el('select', { class: 'filter-select' },
-      el('option', { value: 'all' }, 'Any coverage'),
-      el('option', { value: 'covered' }, 'Fully covered'),
-      el('option', { value: 'partial' }, 'Partially covered'),
-      el('option', { value: 'uncovered' }, 'No coverage'),
-      el('option', { value: 'has-gap' }, 'Has documented gap'),
-      el('option', { value: 'opportunity' }, 'Has opportunity'));
+  if (model.hasStateData) {
+    const opts = [el('option', { value: 'all' }, 'Any state')];
+    if (model.hasCoverageRecords) {
+      opts.push(
+        el('option', { value: 'covered' }, 'Fully covered'),
+        el('option', { value: 'partial' }, 'Partially covered'),
+        el('option', { value: 'uncovered' }, 'No coverage'),
+        el('option', { value: 'has-gap' }, 'Has documented gap'));
+    }
+    if (model.hasOpportunities) {
+      opts.push(el('option', { value: 'opportunity' }, 'Has an open opportunity'));
+    }
+    opts.push(el('option', { value: 'unassessed' }, 'Has an unassessed procedure'));
+    covSel = el('select', { class: 'filter-select' }, ...opts);
     covSel.addEventListener('change', () => { filters.coverage = covSel.value; rerender(); });
   }
 
   // Build sort options. Coverage sorts only make sense when coverage records are loaded.
-  const sortOpts = model.hasCoverageSource
+  const sortOpts = model.hasCoverageRecords
     ? [
         ['coverage-asc',  'Sort: lowest coverage first'],
         ['coverage-desc', 'Sort: highest coverage first'],
@@ -244,7 +241,7 @@ export async function renderTechniquesView(container, options = {}) {
         ['id-desc', 'Sort: TRR ID descending'],
       ];
   // Default sort flips to "newest" when there's no coverage data
-  if (!model.hasCoverageSource) filters.sort = 'newest';
+  if (!model.hasCoverageRecords) filters.sort = 'newest';
 
   const sortSel = el('select', { class: 'filter-select', title: 'Sort order' },
     ...sortOpts.map(([v, label]) => el('option', { value: v }, label))
@@ -306,7 +303,7 @@ export async function renderTechniquesView(container, options = {}) {
       return;
     }
     for (const trr of matching) {
-      grid.append(renderTrrCard(trr, model, sourceUrlFor(trr), model.hasCoverageSource));
+      grid.append(renderTrrCard(trr, model, sourceUrlFor(trr)));
     }
   }
 

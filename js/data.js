@@ -53,8 +53,11 @@
 // --- Constants ---------------------------------------------------------
 
 const RECORD_TYPE = {
-  GAP:      'gap',
-  COVERAGE: 'coverage',
+  GAP:         'gap',
+  COVERAGE:    'coverage',
+  // A published way a procedure could be detected. Never counts as coverage:
+  // it only tells an organization that a detection path exists.
+  OPPORTUNITY: 'opportunity',
 };
 
 const SOURCE_TYPE = {
@@ -64,11 +67,20 @@ const SOURCE_TYPE = {
   EMULATION:  'emulation',
 };
 
+// A procedure's state comes from the organization's own coverage and gap
+// records. Published opportunities matter only where it has neither:
+//
+//   covered      coverage records only
+//   gap          gap records only
+//   partial      both
+//   opportunity  no records of its own, but a published opportunity exists
+//   unassessed   no records of any kind
 const STATE = {
   COVERED:     'covered',
   PARTIAL:     'partial',
   GAP:         'gap',
   OPPORTUNITY: 'opportunity',
+  UNASSESSED:  'unassessed',
 };
 
 const CONFIG_PATH = 'local/config.json';
@@ -101,6 +113,7 @@ function classifyRecordType(rawType) {
   const t = String(rawType).trim().toLowerCase();
   if (t === 'gap' || t === 'gap record') return RECORD_TYPE.GAP;
   if (t === 'coverage' || t === 'coverage record') return RECORD_TYPE.COVERAGE;
+  if (t === 'opportunity') return RECORD_TYPE.OPPORTUNITY;
   return null;  // unknown type — treat as orphan/skip
 }
 
@@ -114,6 +127,17 @@ async function fetchJson(url) {
   const r = await fetch(url, { cache: 'no-cache' });
   if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${url}`);
   return r.json();
+}
+
+// --- Configuration --------------------------------------------------
+
+// The configuration is read once per page. app.js and the view both need it,
+// and both import this module -- the browser shares one instance of it -- so
+// the first call starts the fetch and every later call awaits the same result.
+let configPromise = null;
+export function loadConfig() {
+  if (!configPromise) configPromise = fetchJson(CONFIG_PATH);
+  return configPromise;
 }
 
 // --- Index envelope ---------------------------------------------------
@@ -193,7 +217,7 @@ function normalizeTrr(raw, sourceName, platformShort) {
         coveredCount: 0,
         gapCount: 0,
         fraction: 0,
-        state: STATE.OPPORTUNITY,
+        state: STATE.UNASSESSED,
       });
     }
   }
@@ -341,27 +365,23 @@ export async function loadInsomniaData() {
     recordsByProc: new Map(),
     platforms: new Map(),
     trrPlatformNames: new Set(),
-    recordPlatformNames: new Set(),
     orphanedRecords: [],
     detachedRecords: [],
     excludedRecords: [],
     loadErrors: [],
     warnings: [],
     excludedPlatforms: new Set(),
-    sourceCounts: {},
-    config: null,
   };
 
   // --- configuration ---------------------------------------------------
   let config;
   try {
-    config = await fetchJson(CONFIG_PATH);
+    config = await loadConfig();
   } catch (e) {
     model.loadErrors.push(`Failed to load ${CONFIG_PATH}: ${e.message}`);
     return model;
   }
 
-  model.config = config;
 
   for (const name of (config.excludePlatforms || [])) {
     model.excludedPlatforms.add(String(name).toLowerCase());
@@ -378,7 +398,6 @@ export async function loadInsomniaData() {
     }
     try {
       model.sources.push(resolveSourceLocation({ ...src, Type: type }));
-      model.sourceCounts[type] = (model.sourceCounts[type] || 0) + 1;
     } catch (e) {
       model.loadErrors.push(`Source "${src.Name}": ${e.message}`);
     }
@@ -508,7 +527,6 @@ export async function loadInsomniaData() {
         }
 
         model.records.set(rec.id, rec);
-        for (const p of names) model.recordPlatformNames.add(p);
       }
     }
     // validation and emulation sources are configured but not yet consumed.
@@ -530,8 +548,13 @@ export async function loadInsomniaData() {
   }
 
   // --- join ------------------------------------------------------------
-  // A record referencing only excluded procedures is 'excluded', not
-  // 'orphaned': removing a platform should not invent orphans.
+  // A record referencing only excluded procedures is set aside rather than
+  // counted as orphaned: removing a platform should not invent orphans.
+  const excludedShortCodes = new Set();
+  for (const [name, short] of model.platforms) {
+    if (isExcluded(name)) excludedShortCodes.add(String(short).toUpperCase());
+  }
+
   for (const rec of model.records.values()) {
     if (!rec.procedures || rec.procedures.length === 0) {
       model.detachedRecords.push(rec);
@@ -544,19 +567,11 @@ export async function loadInsomniaData() {
     for (const procId of rec.procedures) {
       if (model.procedures.has(procId)) {
         anyValid = true;
-        if (!model.recordsByProc.has(procId)) {
-          model.recordsByProc.set(procId, []);
-        }
+        if (!model.recordsByProc.has(procId)) model.recordsByProc.set(procId, []);
         model.recordsByProc.get(procId).push(rec);
-        continue;
-      }
-      const parts = String(procId).split('.');
-      if (parts.length >= 2) {
-        for (const [name, short] of model.platforms) {
-          if (short === parts[1].toUpperCase() && isExcluded(name)) {
-            anyExcluded = true;
-          }
-        }
+      } else {
+        const short = String(procId).split('.')[1];
+        if (short && excludedShortCodes.has(short.toUpperCase())) anyExcluded = true;
       }
     }
 
@@ -568,9 +583,20 @@ export async function loadInsomniaData() {
 
   computeCoverageStates(model);
 
-  model.hasCoverageSource = model.sources.some(
-    s => s.Type === SOURCE_TYPE.COVERAGE && !s.error
+  // What the views can show is decided by the records loaded, not by source
+  // types: a public library of opportunities is a coverage source, but it
+  // holds no coverage, and must not produce a coverage percentage.
+  //
+  //   hasCoverageRecords  coverage or gap records exist: show coverage figures
+  //   hasOpportunities    opportunity records exist
+  //   hasStateData        either: procedures have a state worth showing
+  const active = Array.from(model.records.values())
+    .filter(r => String(r.status || '').toLowerCase() !== 'retired');
+  model.hasCoverageRecords = active.some(
+    r => r.type === RECORD_TYPE.COVERAGE || r.type === RECORD_TYPE.GAP
   );
+  model.hasOpportunities = active.some(r => r.type === RECORD_TYPE.OPPORTUNITY);
+  model.hasStateData = model.hasCoverageRecords || model.hasOpportunities;
 
   return model;
 }
@@ -582,24 +608,31 @@ function computeCoverageStates(model) {
     const recs = model.recordsByProc.get(proc.id) || [];
     let covered = 0;
     let gaps = 0;
+    let opportunities = 0;
 
     for (const rec of recs) {
+      // Retired records -- including withdrawn opportunities -- count for nothing.
       if (rec.status && String(rec.status).toLowerCase() === 'retired') continue;
       if (isCoveredType(rec.type)) covered++;
       else if (rec.type === RECORD_TYPE.GAP) gaps++;
+      else if (rec.type === RECORD_TYPE.OPPORTUNITY) opportunities++;
     }
 
     proc.coveredCount = covered;
     proc.gapCount = gaps;
+    proc.opportunityCount = opportunities;
 
     const total = covered + gaps;
     proc.fraction = total > 0 ? covered / total : 0;
 
-    if (total === 0) proc.state = STATE.OPPORTUNITY;
+    // Opportunities never affect the fraction: they are not coverage.
+    if (total === 0) {
+      proc.state = opportunities > 0 ? STATE.OPPORTUNITY : STATE.UNASSESSED;
+    }
     else if (gaps === 0) proc.state = STATE.COVERED;
     else if (covered === 0) proc.state = STATE.GAP;
     else proc.state = STATE.PARTIAL;
   }
 }
 
-export { STATE, RECORD_TYPE, SOURCE_TYPE, LOAD, isCoveredType };
+export { STATE, RECORD_TYPE, isCoveredType };

@@ -2,6 +2,8 @@
    utils.js — Shared utilities used across all view modules.
    ============================================================ */
 
+import { loadInsomniaData } from './data.js';
+
 export function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
   if (attrs) {
@@ -37,7 +39,7 @@ export function trrCoveragePct(trr) {
 // this existed only the dashboard showed errors and nothing showed warnings,
 // so a source failing on another page -- or a cross-source problem such as
 // two sources disagreeing about a platform code -- was invisible.
-export function renderLoadProblems(model) {
+function renderLoadProblems(model) {
   const frag = document.createDocumentFragment();
 
   for (const msg of (model.loadErrors || [])) {
@@ -51,5 +53,44 @@ export function renderLoadProblems(model) {
       el('div', { class: 'err-detail' }, msg)));
   }
   return frag;
+}
+
+// Every view starts the same way: show a loader, load the model, then replace
+// the loader with any load problems. Returns the model, or null if loading
+// failed outright -- in which case the error is already on screen.
+export async function loadViewModel(container, loadingText) {
+  container.innerHTML = '';
+  container.append(el('div', { class: 'loader' }, loadingText));
+
+  let model;
+  try {
+    model = await loadInsomniaData();
+  } catch (e) {
+    container.innerHTML = '';
+    container.append(el('div', { class: 'error-banner' },
+      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
+      el('div', { class: 'err-detail' }, e.message)));
+    return null;
+  }
+
+  container.innerHTML = '';
+  container.append(renderLoadProblems(model));
+  return model;
+}
+
+// The state legend, listing only the states the loaded records can produce:
+// a library of opportunities alone has no covered, partial, or gap
+// procedures to show. Shared by the dashboard and the matrix.
+export function renderStateLegend(model) {
+  if (!model.hasStateData) return null;
+  const item = (cls, label) => el('span', { class: 'legend-item' },
+    el('span', { class: `legend-sw ${cls}` }), label);
+  const items = [];
+  if (model.hasCoverageRecords) {
+    items.push(item('covered', 'covered'), item('partial', 'partial'), item('gap', 'gap'));
+  }
+  if (model.hasOpportunities) items.push(item('opportunity', 'opportunity'));
+  items.push(item('unassessed', 'unassessed'));
+  return el('div', { class: 'legend' }, ...items);
 }
 

@@ -1,19 +1,38 @@
 name: Push index to Insomnia
 
-# Reusable workflow. A source repository calls this on merge so its index
-# reaches Insomnia within seconds, instead of waiting for the scheduled pull.
+# Reusable workflow. A source repository calls this after it merges, so its
+# index reaches Insomnia within seconds instead of waiting for the scheduled
+# pull.
 #
-# In the calling repository:
+# In the calling repository, trigger it when the repository's own indexing
+# workflow FINISHES -- not on push:
+#
+#   on:
+#     workflow_run:
+#       # The source's indexing workflow, exactly -- "Index new record on merge"
+#       # for a coverage repository, "Index new TRR on merge" for a TRR
+#       # library. A name that matches nothing never fires, silently.
+#       workflows: ["Index new record on merge"]
+#       types: [completed]
 #
 #   jobs:
 #     publish:
+#       if: github.event.workflow_run.conclusion == 'success'
 #       uses: tired-labs/insomnia/.github/workflows/push-to-insomnia.yml@main
 #       with:
 #         source-name: "ACME Coverage"
 #         insomnia-repo: "acme/insomnia"
 #       secrets:
-#         app-id: ${{ secrets.GH_APP_ID }}
+#         client-id: ${{ secrets.GH_APP_CLIENT_ID }}
 #         private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+#
+# Why not on push: the record repositories rebuild index.json in a commit of
+# their own, after the merge, and tag it [skip ci] so it does not re-trigger
+# their indexing. [skip ci] suppresses every push-triggered workflow for that
+# commit -- so a caller triggered on push would run only on the merge commit,
+# whose index.json is still the old one, and Insomnia would always be one merge
+# behind. Triggered on the indexing workflow finishing, it runs once, after the
+# rebuild, against the latest main.
 #
 # The App must be installed on the calling repository with Contents: read and
 # on Insomnia with Contents: write. source-name must match the Name in
@@ -35,7 +54,8 @@ on:
         default: 'index.json'
         type: string
     secrets:
-      app-id:
+      client-id:
+        description: "The GitHub App's Client ID"
         required: true
       private-key:
         required: true
@@ -51,7 +71,7 @@ jobs:
       id: app-token
       uses: actions/create-github-app-token@v3
       with:
-        app-id: ${{ secrets.app-id }}
+        client-id: ${{ secrets.client-id }}
         private-key: ${{ secrets.private-key }}
         owner: ${{ github.repository_owner }}
         # Scope the token to just the Insomnia repository.

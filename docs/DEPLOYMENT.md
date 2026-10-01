@@ -5,13 +5,15 @@ Standing up your own Insomnia, and keeping it current. Read
 
 ## Decide where it will be hosted, before anything else
 
-**A deployment with a coverage source is as sensitive as that source.** The
-assembled site maps what your organization can and cannot detect.
+**A deployment loading your own coverage or gap records is as sensitive as
+those records.** The assembled site maps what your organization can and cannot
+detect.
 
-| Sources | Hosting |
+| What it loads | Hosting |
 |---------|---------|
-| library only | Safe to publish. Public GitHub Pages is fine — this is the configuration that serves a public TRR library |
-| any coverage source | Private only: Pages on a plan supporting private sites, or internal hosting of the built site |
+| libraries only | Safe to publish. Public GitHub Pages is fine — this is the configuration that serves a public TRR library |
+| libraries and published opportunities | Also safe to publish: opportunities describe what *could* be detected, not what you detect |
+| any of your own coverage or gap records | Private only: Pages on a plan supporting private sites, or internal hosting of the built site |
 
 Getting this wrong publishes your detection gaps. Decide it first.
 
@@ -148,8 +150,8 @@ If every source is public, skip this section — no App is needed.
 3. Install it on **each private source** and on **this one**. Public sources
    need nothing — the sync reaches them without credentials.
 4. Add two secrets here under **Settings → Secrets and variables → Actions**:
-   - `GH_APP_ID`
-   - `GH_APP_PRIVATE_KEY`
+   - `GH_APP_CLIENT_ID` — the App's **Client ID**, shown on its settings page
+   - `GH_APP_PRIVATE_KEY` — the full contents of its `.pem` file
 
 Read access on sources and write access here is all it needs.
 
@@ -182,20 +184,50 @@ After that, the workflow runs weekly on its own.
 
 ## 5. Optional: push on merge
 
-For data that arrives in seconds rather than by the next scheduled pull, have
-each source call the reusable workflow when it merges:
+For data that arrives in seconds rather than by the next scheduled pull, add
+this workflow to each source repository, as
+`.github/workflows/publish-to-insomnia.yml`:
 
 ```yaml
+name: Publish index to Insomnia
+
+on:
+  workflow_run:
+    workflows: ["Index new record on merge"]   # the source's indexing workflow
+    types: [completed]
+
 jobs:
   publish-to-insomnia:
+    if: github.event.workflow_run.conclusion == 'success'
     uses: <your-org>/my-insomnia/.github/workflows/push-to-insomnia.yml@main
     with:
       source-name: "ACME Coverage"     # must match Name in config.json
       insomnia-repo: "<your-org>/my-insomnia"
     secrets:
-      app-id: ${{ secrets.GH_APP_ID }}
+      client-id: ${{ secrets.GH_APP_CLIENT_ID }}
       private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 ```
+
+**Trigger it on the indexing workflow finishing, not on push.** The record
+repositories rebuild `index.json` in a separate commit after each merge, tagged
+`[skip ci]` so it does not re-trigger their own indexing — and `[skip ci]`
+suppresses every push-triggered workflow for that commit. A publish workflow
+triggered `on: push` would therefore run only on the merge commit, whose index
+is still the old one, and Insomnia would always be one merge behind, with every
+run reporting success. Triggered on `workflow_run`, it runs once, after the
+rebuild, against the latest `main`.
+
+The name under `workflows:` must match the source's indexing workflow exactly,
+and it differs between the two record templates:
+
+| Source | Indexing workflow name |
+|--------|------------------------|
+| Coverage records | `Index new record on merge` |
+| TRR library | `Index new TRR on merge` |
+
+Get it right: a `workflow_run` naming a workflow that does not exist never
+fires, and nothing reports it. The `if:` line stops a failed reindex from
+publishing.
 
 `source-name` must match the `Name` in your config exactly, and that source
 should be `Load: "local"` — a push writes into `data/`, which is only read for

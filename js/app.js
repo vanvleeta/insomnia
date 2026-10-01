@@ -1,3 +1,5 @@
+import { loadConfig } from './data.js';
+
 /* ============================================================
    app.js — Shared init: theme toggle, header behavior.
    ============================================================ */
@@ -50,8 +52,7 @@ async function initSourceSummary() {
   };
 
   try {
-    const r = await fetch('local/config.json', { cache: 'no-cache' });
-    const config = await r.json();
+    const config = await loadConfig();
     const sources = (config && config.sources) || [];
 
     const counts = {};
@@ -144,8 +145,7 @@ async function initBanner() {
 
   let config;
   try {
-    const r = await fetch('local/config.json', { cache: 'no-cache' });
-    config = await r.json();
+    config = await loadConfig();
   } catch (_) {
     return;                                 // no config, no banner
   }
@@ -204,14 +204,6 @@ async function initBanner() {
   header.insertAdjacentElement('afterend', section);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initTheme();
-  initSourceSummary();
-  initBanner();
-  injectContributeButton();
-  injectBrandMark();
-  initLibraryOnlyMode();
-});
 
 // Tag <body> with `library-only` when no coverage source is configured, so CSS
 // can hide nav items that don't make sense (Records). Runs on every page;
@@ -219,8 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // either way.
 async function initLibraryOnlyMode() {
   try {
-    const r = await fetch('local/config.json', { cache: 'no-cache' });
-    const config = await r.json();
+    const config = await loadConfig();
     const sources = (config && config.sources) || [];
     const hasCoverage = sources.some(
       s => s && String(s.Type).toLowerCase() === 'coverage'
@@ -276,3 +267,13 @@ function injectContributeButton() {
   a.append(icon, label);
   document.body.append(a);
 }
+
+// --- Startup -----------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initSourceSummary();
+  initBanner();
+  injectContributeButton();
+  injectBrandMark();
+  initLibraryOnlyMode();
+});

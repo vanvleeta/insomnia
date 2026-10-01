@@ -8,20 +8,20 @@
      ?type=gap|coverage|detection|detached
    ============================================================ */
 
-import { loadInsomniaData, RECORD_TYPE, recordUrl } from './data.js';
-import { el, uniqueSorted, renderLoadProblems } from './utils.js';
+import {RECORD_TYPE, recordUrl} from './data.js';
+import { el, uniqueSorted, loadViewModel } from './utils.js';
 
 const TYPE_DISPLAY = {
-  [RECORD_TYPE.GAP]:       'gap',
-  [RECORD_TYPE.COVERAGE]:  'coverage',
-  [RECORD_TYPE.DETECTION]: 'detection',
+  [RECORD_TYPE.GAP]:         'gap',
+  [RECORD_TYPE.COVERAGE]:    'coverage',
+  [RECORD_TYPE.OPPORTUNITY]: 'opportunity',
 };
 
 function typeTagClass(t) {
   if (t === RECORD_TYPE.GAP) return 'gap';
   if (t === RECORD_TYPE.COVERAGE) return 'covered';
-  if (t === RECORD_TYPE.DETECTION) return 'covered';
-  return 'opportunity';
+  if (t === RECORD_TYPE.OPPORTUNITY) return 'opportunity';
+  return 'unassessed';
 }
 
 function renderRecordCard(record, model, href) {
@@ -177,25 +177,12 @@ function matchesFilters(record, filters, model) {
 }
 
 export async function renderRecordsView(container) {
-  container.innerHTML = '';
-  container.append(el('div', { class: 'loader' }, 'Loading records'));
+  const model = await loadViewModel(container, 'Loading records');
+  if (!model) return;
 
-  let model;
-  try {
-    model = await loadInsomniaData();
-  } catch (e) {
-    container.innerHTML = '';
-    container.append(el('div', { class: 'error-banner' },
-      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
-      el('div', { class: 'err-detail' }, e.message)));
-    return;
-  }
 
-  container.innerHTML = '';
-  container.append(renderLoadProblems(model));
-
-  // No coverage source configured: explain rather than render an empty list.
-  if (!model.hasCoverageSource) {
+  // No records of any type loaded: explain rather than render an empty list.
+  if (model.records.size === 0) {
     container.append(el('div', { class: 'library-only-hint' },
       el('div', { class: 'hint-title' }, 'No coverage records'),
       el('div', { class: 'hint-body' },
@@ -267,6 +254,7 @@ export async function renderRecordsView(container) {
     el('option', { value: 'all' }, 'Any type'),
     el('option', { value: RECORD_TYPE.COVERAGE }, 'Coverage records'),
     el('option', { value: RECORD_TYPE.GAP }, 'Gap records'),
+    el('option', { value: RECORD_TYPE.OPPORTUNITY }, 'Opportunity records'),
     el('option', { value: 'detached' }, 'Detached records'),
     el('option', { value: 'orphaned' }, 'Orphaned records'),
   );

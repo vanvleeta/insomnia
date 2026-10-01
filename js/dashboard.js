@@ -2,12 +2,10 @@
    dashboard.js — Renders the dashboard view (index.html).
    ============================================================ */
 
-import { loadInsomniaData, STATE } from './data.js';
 import {
   computeMetrics, coverageByTactic, coverageByPlatform,
-  topGaps, topOpportunities, buildTrend, trendDelta, latestAdditions
-} from './metrics.js';
-import { el, renderLoadProblems } from './utils.js';
+  topGaps, topOpportunities, buildTrend, trendDelta, latestAdditions, DELTA_WINDOW_DAYS } from './metrics.js';
+import { el, loadViewModel, renderStateLegend } from './utils.js';
 
 // --- Utilities -------------------------------------------------------
 
@@ -75,7 +73,7 @@ function renderHeroMetrics(metrics, trend, deltas, hasCoverage) {
   const scoreCard = el('div', { class: 'card metric-hero' },
     el('div', { class: 'label' }, 'Attack surface awareness'),
     el('div', { class: 'value mono' }, fmtScore(metrics.score)),
-    el('div', { class: 'sub' }, `${fmtDelta(deltas.score, 0)} in last 90 days`)
+    el('div', { class: 'sub' }, `${fmtDelta(deltas.score, 0)} in last ${DELTA_WINDOW_DAYS} days`)
   );
   const scoreSpark = sparkline(trend.map(p => p.score), 'var(--covered)');
   if (scoreSpark) {
@@ -98,7 +96,7 @@ function renderHeroMetrics(metrics, trend, deltas, hasCoverage) {
       fmtPct(metrics.surfacePct), el('span', { class: 'pct' }, '%')),
     el('div', { class: 'sub' },
       `${fmtPct(metrics.surfaceCovered)} of ${metrics.procCount} procedures  ·  ` +
-      `${fmtDelta(deltas.surfacePct)} pts in 90 days`)
+      `${fmtDelta(deltas.surfacePct)} pts in ${DELTA_WINDOW_DAYS} days`)
   );
   const surfaceSpark = sparkline(trend.map(p => p.surfacePct), 'var(--brand)');
   if (surfaceSpark) {
@@ -111,60 +109,45 @@ function renderHeroMetrics(metrics, trend, deltas, hasCoverage) {
   return grid;
 }
 
-function renderStatStrip(metrics, hasCoverage) {
-  if (!hasCoverage) {
-    return el('div', { class: 'stat-strip two-col' },
-      el('div', { class: 'stat' },
-        el('div', { class: 'stat-label' }, 'TRRs'),
-        el('div', { class: 'stat-value' }, fmtInt(metrics.trrCount))),
-      el('div', { class: 'stat' },
-        el('div', { class: 'stat-label' }, 'Procedures'),
-        el('div', { class: 'stat-value' }, fmtInt(metrics.procCount))),
-    );
+function renderStatStrip(metrics, model) {
+  const stat = (cls, label, value) => el('div', { class: `stat ${cls}` },
+    el('div', { class: 'stat-label' }, label),
+    el('div', { class: 'stat-value' }, fmtInt(value)));
+
+  const stats = [stat('', 'TRRs', metrics.trrCount), stat('', 'Procedures', metrics.procCount)];
+  if (model.hasCoverageRecords) {
+    stats.push(
+      stat('is-covered', 'Covered', metrics.coveredCount + metrics.partialCount),
+      stat('is-gap', 'Gaps', metrics.gapCount + metrics.partialCount));
   }
-  return el('div', { class: 'stat-strip' },
-    el('div', { class: 'stat' },
-      el('div', { class: 'stat-label' }, 'TRRs'),
-      el('div', { class: 'stat-value' }, fmtInt(metrics.trrCount))),
-    el('div', { class: 'stat' },
-      el('div', { class: 'stat-label' }, 'Procedures'),
-      el('div', { class: 'stat-value' }, fmtInt(metrics.procCount))),
-    el('div', { class: 'stat is-covered' },
-      el('div', { class: 'stat-label' }, 'Covered'),
-      el('div', { class: 'stat-value' }, fmtInt(metrics.coveredCount + metrics.partialCount))),
-    el('div', { class: 'stat is-gap' },
-      el('div', { class: 'stat-label' }, 'Gaps'),
-      el('div', { class: 'stat-value' }, fmtInt(metrics.gapCount + metrics.partialCount))),
-    el('div', { class: 'stat is-opportunity' },
-      el('div', { class: 'stat-label' }, 'Opportunities'),
-      el('div', { class: 'stat-value' }, fmtInt(metrics.opportunityCount))),
-  );
+  if (model.hasOpportunities) {
+    stats.push(stat('is-opportunity', 'Opportunities', metrics.opportunityCount));
+  }
+  if (model.hasStateData) {
+    stats.push(stat('is-unassessed', 'Unassessed', metrics.unassessedCount));
+  }
+  // One column per stat, so the strip never wraps a stray card onto a new row.
+  const cols = { 2: 'two-col', 3: 'three-col', 4: 'four-col', 5: 'five-col', 6: 'six-col' }[stats.length] || '';
+  return el('div', { class: `stat-strip ${cols}` }, ...stats);
 }
 
-function renderLegend() {
-  return el('div', { class: 'legend' },
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw covered' }), 'covered'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw partial' }), 'partial'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw gap' }), 'gap'),
-    el('span', { class: 'legend-item' }, el('span', { class: 'legend-sw opportunity' }), 'opportunity'),
-  );
-}
 
-function renderBarChart(title, rows, showLegend = true) {
+function renderBarChart(title, rows, model, showLegend = true) {
   const card = el('div', { class: 'card' });
   card.append(el('div', { class: 'chart-header' },
     el('div', { class: 'chart-title' }, title),
-    showLegend ? renderLegend() : null
+    showLegend ? renderStateLegend(model) : null
   ));
 
   for (const row of rows) {
-    // Each bar shows the four states stacked, proportional to procedure count
+    // Each bar shows every state stacked, proportional to procedure count
     const t = row.total || 1;
     const segs = [
       { cls: 'covered',     pct: (row.covered     / t) * 100 },
       { cls: 'partial',     pct: (row.partial     / t) * 100 },
       { cls: 'gap',         pct: (row.gap         / t) * 100 },
       { cls: 'opportunity', pct: (row.opportunity / t) * 100 },
+      { cls: 'unassessed',  pct: (row.unassessed  / t) * 100 },
     ];
     const track = el('div', { class: 'bar-track' });
     for (const s of segs) {
@@ -175,7 +158,13 @@ function renderBarChart(title, rows, showLegend = true) {
       }
     }
 
-    const pctEl = el('span', { class: 'pct' }, fmtInt(row.pct) + '%');
+    // With coverage records, the figure is the share of the group covered.
+    // With only published opportunities there is no coverage to measure, so
+    // it is the share of procedures that have an opportunity -- a figure the
+    // public library can honestly state. Showing the coverage share there
+    // would print 0% on every row.
+    const shown = model.hasCoverageRecords ? row.pct : (row.opportunity / t) * 100;
+    const pctEl = el('span', { class: 'pct' }, fmtInt(shown) + '%');
 
     card.append(el('div', { class: 'bar-row' },
       el('span', { class: 'name', title: row.name }, row.name),
@@ -276,54 +265,50 @@ function renderLatestAdditions(items) {
 // --- Entry point -----------------------------------------------------
 
 export async function renderDashboard(container) {
-  container.innerHTML = '';
-  container.append(el('div', { class: 'loader' }, 'Loading sources'));
-
-  let model;
-  try {
-    model = await loadInsomniaData();
-  } catch (e) {
-    container.innerHTML = '';
-    container.append(el('div', { class: 'error-banner' },
-      el('div', { class: 'err-title' }, 'Could not load Insomnia data'),
-      el('div', { class: 'err-detail' }, e.message)));
-    return;
-  }
+  const model = await loadViewModel(container, 'Loading sources');
+  if (!model) return;
 
   const metrics = computeMetrics(model);
   const trend = buildTrend(model);
-  const deltas = trendDelta(trend, 90);
+  const deltas = trendDelta(trend);
   const tactics = coverageByTactic(model);
   const platforms = coverageByPlatform(model);
   const gaps = topGaps(model, 6);
   const opportunities = topOpportunities(model, 6);
   const latest = latestAdditions(model, 30, 10);
 
-  container.innerHTML = '';
 
-  container.append(renderLoadProblems(model));
+  // The coverage figures need the organization's own coverage or gap records;
+  // a library of opportunities alone has none to measure.
+  container.append(renderHeroMetrics(metrics, trend, deltas, model.hasCoverageRecords));
+  container.append(renderStatStrip(metrics, model));
 
-  container.append(renderHeroMetrics(metrics, trend, deltas, model.hasCoverageSource));
-  container.append(renderStatStrip(metrics, model.hasCoverageSource));
-
-  if (model.hasCoverageSource) {
+  if (model.hasStateData) {
+    const byTactic = model.hasCoverageRecords ? 'Coverage by tactic' : 'Opportunities by tactic';
+    const byPlatform = model.hasCoverageRecords ? 'Coverage by platform' : 'Opportunities by platform';
     container.append(el('div', { class: 'charts-grid' },
-      renderBarChart('Coverage by tactic', tactics, true),
-      renderBarChart('Coverage by platform', platforms, false),
+      renderBarChart(byTactic, tactics, model, true),
+      renderBarChart(byPlatform, platforms, model, false),
     ));
-    container.append(el('div', { class: 'charts-grid two-col' },
-      renderTopList('Top gaps', gaps, 'gap',
-        'No documented gaps. Either your coverage is complete or no gap records exist yet.'),
-      renderTopList('Top opportunities', opportunities, 'opportunity',
-        'No untouched procedures. Every procedure has at least one record.'),
-    ));
+    const lists = [];
+    if (model.hasCoverageRecords) {
+      lists.push(renderTopList('Top gaps', gaps, 'gap',
+        'No documented gaps. Either your coverage is complete or no gap records exist yet.'));
+    }
+    if (model.hasOpportunities) {
+      lists.push(renderTopList('Top opportunities', opportunities, 'opportunity',
+        'No open opportunities. Every procedure with a published opportunity has a record of its own.'));
+    }
+    if (lists.length) {
+      container.append(el('div', { class: `charts-grid ${lists.length === 2 ? 'two-col' : ''}` }, ...lists));
+    }
   }
 
   // Latest Additions card — shown in both full and library-only modes.
   container.append(renderLatestAdditions(latest));
 
-  // Orphan / detached record banner — only when we have coverage data
-  if (model.hasCoverageSource) {
+  // Orphan / detached record banner — whenever any records are loaded
+  if (model.hasStateData) {
     container.append(renderOrphanBanner(model.orphanedRecords, model.detachedRecords));
   }
 }

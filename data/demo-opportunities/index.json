@@ -1,0 +1,643 @@
+{
+  "schema": 2,
+  "generated": "2026-09-30T13:57:53Z",
+  "platforms": {
+    "Active Directory": "ad",
+    "Android": "and",
+    "AWS": "aws",
+    "Azure": "azr",
+    "Docker": "dkr",
+    "Microsoft 365": "m365",
+    "GCP": "gcp",
+    "iOS": "ios",
+    "Kubernetes": "k8s",
+    "Linux": "lin",
+    "macOS": "mac",
+    "Physical": "phy",
+    "Windows": "win"
+  },
+  "records": [
+    {
+      "title": "Demo opportunity 1 for Test All Accounts for Pre-Authentication Status",
+      "id": "OPP0010",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.C"
+      ],
+      "pub_date": "2026-05-17"
+    },
+    {
+      "title": "Demo opportunity 1 for Intercept AS Messages on the Network",
+      "id": "OPP0011",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.D"
+      ],
+      "pub_date": "2026-04-08"
+    },
+    {
+      "title": "Demo opportunity 2 for Intercept AS Messages on the Network",
+      "id": "OPP0012",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.D"
+      ],
+      "pub_date": "2026-04-27"
+    },
+    {
+      "title": "Demo opportunity 1 for Forge TGT using PAC acquired via U2U+S4U2Self (Sapphire Ticket",
+      "id": "OPP0013",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.001"
+      ],
+      "procedures": [
+        "TRR0013.AD.B"
+      ],
+      "pub_date": "2026-07-15"
+    },
+    {
+      "title": "Demo opportunity 2 for Forge TGT using PAC acquired via U2U+S4U2Self (Sapphire Ticket",
+      "id": "OPP0014",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.001"
+      ],
+      "procedures": [
+        "TRR0013.AD.B"
+      ],
+      "pub_date": "2026-07-15"
+    },
+    {
+      "title": "Demo opportunity 1 for Enumerate Accounts Lacking Pre-Authentication via ADWS",
+      "id": "OPP0015",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.B"
+      ],
+      "pub_date": "2026-09-17"
+    },
+    {
+      "title": "Demo opportunity 2 for Enumerate Accounts Lacking Pre-Authentication via ADWS",
+      "id": "OPP0016",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.B"
+      ],
+      "pub_date": "2026-05-08"
+    },
+    {
+      "title": "Demo opportunity 1 for Modify Entra Diagnostic Setting",
+      "id": "OPP0017",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.AZR.A"
+      ],
+      "pub_date": "2026-03-17"
+    },
+    {
+      "title": "Demo opportunity 1 for Key Trust + U2U",
+      "id": "OPP0018",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1555"
+      ],
+      "procedures": [
+        "TRR0029.WIN.B"
+      ],
+      "pub_date": "2026-06-25"
+    },
+    {
+      "title": "Demo opportunity 1 for Event Clearing via RPC Call",
+      "id": "OPP0019",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.A"
+      ],
+      "pub_date": "2026-07-15"
+    },
+    {
+      "title": "Demo opportunity 2 for Event Clearing via RPC Call",
+      "id": "OPP0020",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.A"
+      ],
+      "pub_date": "2026-06-25"
+    },
+    {
+      "title": "Demo opportunity 1 for Export Mailbox",
+      "id": "OPP0021",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.E"
+      ],
+      "pub_date": "2026-09-03"
+    },
+    {
+      "title": "Demo opportunity 1 for Submit ticket to local cache",
+      "id": "OPP0022",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Lateral Movement"
+      ],
+      "techniques": [
+        "T1550.003"
+      ],
+      "procedures": [
+        "TRR0024.WIN.A"
+      ],
+      "pub_date": "2026-06-20"
+    },
+    {
+      "title": "Demo opportunity 1 for Modify existing federated domain",
+      "id": "OPP0023",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1484.002",
+        "T1556.007"
+      ],
+      "procedures": [
+        "TRR0031.AZR.A"
+      ],
+      "pub_date": "2026-07-18"
+    },
+    {
+      "title": "Demo opportunity 2 for Modify existing federated domain",
+      "id": "OPP0024",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1484.002",
+        "T1556.007"
+      ],
+      "procedures": [
+        "TRR0031.AZR.A"
+      ],
+      "pub_date": "2026-06-01"
+    },
+    {
+      "title": "Demo opportunity 1 for Raw disk access",
+      "id": "OPP0025",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.003"
+      ],
+      "procedures": [
+        "TRR0015.WIN.B"
+      ],
+      "pub_date": "2026-07-12"
+    },
+    {
+      "title": "Demo opportunity 1 for Disable Mailbox Auditing (Org Wide)",
+      "id": "OPP0026",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.M365.B"
+      ],
+      "pub_date": "2026-05-21"
+    },
+    {
+      "title": "Demo opportunity 1 for Mailbox Delegation",
+      "id": "OPP0027",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.D"
+      ],
+      "pub_date": "2026-09-09"
+    },
+    {
+      "title": "Demo opportunity 2 for Mailbox Delegation",
+      "id": "OPP0028",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.D"
+      ],
+      "pub_date": "2026-05-02"
+    },
+    {
+      "title": "Demo opportunity 1 for Submit forged token to federation endpoint",
+      "id": "OPP0029",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Credential Access",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1606.002"
+      ],
+      "procedures": [
+        "TRR0032.AZR.A"
+      ],
+      "pub_date": "2026-07-16"
+    },
+    {
+      "title": "Demo opportunity 1 for Queue Remote APC",
+      "id": "OPP0030",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Privilege Escalation"
+      ],
+      "techniques": [
+        "T1055.004",
+        "T1055.001"
+      ],
+      "procedures": [
+        "TRR0025.WIN.A"
+      ],
+      "pub_date": "2026-03-17"
+    },
+    {
+      "title": "Demo opportunity 2 for Queue Remote APC",
+      "id": "OPP0031",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Privilege Escalation"
+      ],
+      "techniques": [
+        "T1055.004",
+        "T1055.001"
+      ],
+      "procedures": [
+        "TRR0025.WIN.A"
+      ],
+      "pub_date": "2026-08-28"
+    },
+    {
+      "title": "Demo opportunity 1 for Event Log File Redirection",
+      "id": "OPP0032",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.C"
+      ],
+      "pub_date": "2026-07-09"
+    },
+    {
+      "title": "Demo opportunity 1 for eDiscovery",
+      "id": "OPP0033",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.C"
+      ],
+      "pub_date": "2026-07-13"
+    },
+    {
+      "title": "Demo opportunity 1 for Raw Disk Access",
+      "id": "OPP0034",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.D"
+      ],
+      "pub_date": "2026-06-07"
+    },
+    {
+      "title": "Demo opportunity 1 for Acquire Registry Backup",
+      "id": "OPP0035",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.E"
+      ],
+      "pub_date": "2026-09-12"
+    },
+    {
+      "title": "Demo opportunity 2 for Acquire Registry Backup",
+      "id": "OPP0036",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.E"
+      ],
+      "pub_date": "2026-09-09"
+    },
+    {
+      "title": "Withdrawn opportunity",
+      "id": "OPP0037",
+      "type": "Opportunity",
+      "status": "Retired",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [],
+      "techniques": [],
+      "procedures": [
+        "TRR0033.M365.E"
+      ],
+      "pub_date": "2026-01-01"
+    }
+  ]
+}
