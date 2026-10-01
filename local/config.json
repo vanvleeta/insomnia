@@ -34,6 +34,9 @@
       "Type": "coverage",
       "Load": "local"
     },
-    { "Name": "Demo", "Type": "coverage", "Load": "local" }
+    {
+      "Name": "Demo", "Type": "coverage", "Load": "local",
+      "Repo": "https://github.com/vanvleeta/coverage-template"
+    }
   ]
 }
