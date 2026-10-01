@@ -1,0 +1,674 @@
+{
+  "schema": 2,
+  "generated": "2026-10-01T15:21:04Z",
+  "platforms": {
+    "Active Directory": "ad",
+    "Android": "and",
+    "AWS": "aws",
+    "Azure": "azr",
+    "Docker": "dkr",
+    "Microsoft 365": "m365",
+    "GCP": "gcp",
+    "iOS": "ios",
+    "Kubernetes": "k8s",
+    "Linux": "lin",
+    "macOS": "mac",
+    "Physical": "phy",
+    "Windows": "win"
+  },
+  "records": [
+    {
+      "title": "Directory Replication Requested by a Non-DC Host",
+      "id": "OPP0010",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.006"
+      ],
+      "procedures": [
+        "TRR0011.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Replication Rights Granted to an Unexpected Principal",
+      "id": "OPP0011",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.006"
+      ],
+      "procedures": [
+        "TRR0011.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Directory Search for Accounts Without Pre-Authentication",
+      "id": "OPP0012",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Authentication Without Pre-Authentication Across Many Accounts",
+      "id": "OPP0013",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.004"
+      ],
+      "procedures": [
+        "TRR0012.AD.C"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Ticket-Granting Ticket With No Matching Issuance",
+      "id": "OPP0014",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.001"
+      ],
+      "procedures": [
+        "TRR0013.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "User-to-User Ticket Requests Combined With S4U2Self",
+      "id": "OPP0015",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.001"
+      ],
+      "procedures": [
+        "TRR0013.AD.B"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Domain Controller Registered by a Non-DC Host",
+      "id": "OPP0016",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1207"
+      ],
+      "procedures": [
+        "TRR0014.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Replication Pushed From an Unregistered Source",
+      "id": "OPP0017",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1207"
+      ],
+      "procedures": [
+        "TRR0014.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Directory Database Read From a Shadow Copy",
+      "id": "OPP0018",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.003"
+      ],
+      "procedures": [
+        "TRR0015.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Raw Volume Reads on a Domain Controller",
+      "id": "OPP0019",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.003"
+      ],
+      "procedures": [
+        "TRR0015.WIN.B"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "MSHTA Running Remote or Inline Script Content",
+      "id": "OPP0020",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1218.005"
+      ],
+      "procedures": [
+        "TRR0016.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "RunDll32 Invoking MSHTML's HTML Application Entry Point",
+      "id": "OPP0021",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1218.005"
+      ],
+      "procedures": [
+        "TRR0016.WIN.B"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Directory Search for Accounts With Service Principal Names",
+      "id": "OPP0022",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "One Account Requesting Tickets for Many Services",
+      "id": "OPP0023",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1558.003"
+      ],
+      "procedures": [
+        "TRR0018.AD.D"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "New Credential Added to a Service Principal",
+      "id": "OPP0024",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1098.001",
+        "T1098.003",
+        "T1136.003"
+      ],
+      "procedures": [
+        "TRR0020.AZR.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "High-Privilege Permissions Granted to an Application",
+      "id": "OPP0025",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1098.001",
+        "T1098.003",
+        "T1136.003"
+      ],
+      "procedures": [
+        "TRR0020.AZR.D"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Guest Account Invited Outside Normal Patterns",
+      "id": "OPP0026",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1136.003"
+      ],
+      "procedures": [
+        "TRR0021.AZR.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Windows Event Log Cleared",
+      "id": "OPP0027",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Event Logging Stops Without a Restart",
+      "id": "OPP0028",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1070.001"
+      ],
+      "procedures": [
+        "TRR0023.WIN.B"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Kerberos Ticket Used From a Different Host",
+      "id": "OPP0029",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Defense Evasion",
+        "Lateral Movement"
+      ],
+      "techniques": [
+        "T1550.003"
+      ],
+      "procedures": [
+        "TRR0024.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Permanent WMI Event Subscription Created",
+      "id": "OPP0030",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1546.003"
+      ],
+      "procedures": [
+        "TRR0027.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Key Credential Link Written by an Unexpected Principal",
+      "id": "OPP0031",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Active Directory"
+      ],
+      "tactics": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "techniques": [
+        "T1098.001",
+        "T1098"
+      ],
+      "procedures": [
+        "TRR0028.AD.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "SAM and SYSTEM Hives Saved or Read by an Unusual Process",
+      "id": "OPP0032",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Windows"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1003.002"
+      ],
+      "procedures": [
+        "TRR0030.WIN.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Federated Domain Configuration Changed",
+      "id": "OPP0033",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Persistence",
+        "Defense Evasion"
+      ],
+      "techniques": [
+        "T1484.002",
+        "T1556.007"
+      ],
+      "procedures": [
+        "TRR0031.AZR.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Identity Log Export Removed or Changed",
+      "id": "OPP0034",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.AZR.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Unified Audit Log Ingestion Turned Off",
+      "id": "OPP0035",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Defense Impairment"
+      ],
+      "techniques": [
+        "T1685.002"
+      ],
+      "procedures": [
+        "TRR0033.M365.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Mailbox Access Delegated to Another Principal",
+      "id": "OPP0036",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Microsoft 365"
+      ],
+      "tactics": [
+        "Collection"
+      ],
+      "techniques": [
+        "T1114.002"
+      ],
+      "procedures": [
+        "TRR0019.M365.D"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    },
+    {
+      "title": "Authorization Code Redeemed From a Different Session",
+      "id": "OPP0037",
+      "type": "Opportunity",
+      "status": "Active",
+      "contributors": [
+        "Demo"
+      ],
+      "platforms": [
+        "Azure"
+      ],
+      "tactics": [
+        "Credential Access"
+      ],
+      "techniques": [
+        "T1528"
+      ],
+      "procedures": [
+        "TRR0034.AZR.A"
+      ],
+      "last_update": "2026-10-01",
+      "pub_date": "2026-10-01"
+    }
+  ]
+}

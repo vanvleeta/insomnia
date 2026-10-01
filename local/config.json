@@ -33,6 +33,7 @@
       "Name": "ACME",
       "Type": "coverage",
       "Load": "local"
-    }
+    },
+    { "Name": "Demo", "Type": "coverage", "Load": "local" }
   ]
 }
