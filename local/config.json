@@ -1,42 +1,21 @@
 {
   "schema": 1,
   "excludePlatforms": [],
-  "banner": {
-    "title": "Welcome to the TRR Library!",
-    "body": [
-      "This is a collection of technique research reports (TRRs) documenting attack techniques for use in understanding, emulating, and detecting cyber attacks. New to TRRs? See the links below."
-    ],
-    "links": [
-      {
-        "text": "Project Overview",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/PROJECT-OVERVIEW.md"
-      },
-       {
-        "text": "TRR Guide",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/TECHNIQUE-RESEARCH-REPORT.md"
-      },
-      {
-        "text": "Contribute",
-        "href": "https://github.com/tired-labs/techniques/blob/main/docs/CONTRIBUTING.md"
-      }
-
-    ]
-  },
   "sources": [
     {
       "Name": "TIRED Labs",
       "Type": "library",
-      "Repo": "https://github.com/vanvleeta/my-trr-library",
-      "Load": "live"
+      "Repo": "https://github.com/vanvleeta/my-trr-library"
     },
     {
-      "Name": "ACME",
+      "Name": "ACME Coverage",
       "Type": "coverage",
       "Load": "local"
     },
     {
-      "Name": "Demo", "Type": "coverage", "Load": "local",
-      "Repo": "https://github.com/vanvleeta/coverage-template"
+      "Name": "Demo Opportunities",
+      "Type": "coverage",
+      "Load": "local"
     }
   ]
 }

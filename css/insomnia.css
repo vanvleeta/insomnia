@@ -1060,11 +1060,23 @@ body.library-only .nav-link[href="records.html"] { display: none; }
 }
 
 /* ---------- Latest additions card ---------- */
-.latest-list { display: flex; flex-direction: column; }
+/* The list owns the columns and every row adopts them (subgrid), so the badge
+   column is as wide as the widest label actually present -- TRR, RECORD,
+   OPPORTUNITY -- and IDs line up from row to row. A fixed width per row cannot
+   do that: it is either too narrow for the longest label, which then spills
+   under the ID, or wasted on every row without it. */
+.latest-list {
+  display: grid;
+  grid-template-columns: max-content 80px 1fr auto;
+  column-gap: 10px;
+}
 .latest-item {
   display: grid;
-  grid-template-columns: 38px 80px 1fr auto;
-  gap: 10px;
+  grid-column: 1 / -1;
+  /* Fallback for browsers without subgrid: wide enough for OPPORTUNITY. */
+  grid-template-columns: 96px 80px 1fr auto;
+  grid-template-columns: subgrid;
+  column-gap: 10px;
   align-items: center;
   padding: 6px 0;
   border-bottom: 1px dashed var(--hairline);
@@ -1089,6 +1101,13 @@ body.library-only .nav-link[href="records.html"] { display: none; }
 .latest-kind.kind-record { background: rgba(151, 196, 89, 0.14); color: var(--covered); }
 .latest-kind.kind-opportunity { background: color-mix(in srgb, var(--opportunity) 14%, transparent); color: var(--opportunity); }
 .latest-item .id { font-size: 11.5px; color: var(--text-strong); font-family: 'IBM Plex Mono', monospace; }
+/* On narrow screens the badge and ID leave the title little room, so the date
+   goes: the list is already newest first, so its order still shows recency. */
+@media (max-width: 600px) {
+  .latest-list { grid-template-columns: max-content 80px 1fr; }
+  .latest-item { grid-template-columns: 96px 80px 1fr; grid-template-columns: subgrid; }
+  .latest-item .latest-date { display: none; }
+}
 .latest-item .desc {
   color: var(--text-muted);
   overflow: hidden;
